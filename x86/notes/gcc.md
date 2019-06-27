@@ -1,8 +1,8 @@
-### Prologue and Epilogue
+## Prologue and Epilogue
 
 Sometimes GCC adds some additional instructions at the beginning and end of main.
 
-##### Prologue
+#### Prologue
 
 The prologue looks like this:
 ```asm
@@ -57,7 +57,7 @@ ecx+0: address of argc
 ecx+4: pointer to argv
 ```
 
-##### Epilogue 
+#### Epilogue 
 At the end of main, gcc adds the following epilogue:
 ```asm
 mov    ecx,DWORD PTR [ebp-0x4]
