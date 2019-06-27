@@ -36,9 +36,9 @@ That means this instruction is equivalent to `and esp, -16`
 This is also why the stack is sometimes aligned before calls:
 
 ```asm
-sub esp, 0xc  ; 12 bytes of padding
-push eax      ; 4 bytes (total = 16)
-call puts
+sub     esp, 0xc  ; 12 bytes of padding
+push    eax      ; 4 bytes (total = 16)
+call    puts
 ```
 
 Then, the instruction `push DWORD PTR [ecx-0x4]` stores the original return address (before alignment) on the stack. 
