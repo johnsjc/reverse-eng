@@ -33,7 +33,7 @@ This is because 2<sup>4</sup> = 16.
 Also note that 0xfffffff0 is also equal to -16 (two's complement of 0x10). Neat.
 That means this instruction is equivalent to `and esp, -16`
 
-This is also why the stack is sometimes aligned before calls:
+Sometimes the stack is adjusted before calls to ensure the alignment is preserved:
 
 ```asm
 sub     esp, 0xc  ; 12 bytes of padding
