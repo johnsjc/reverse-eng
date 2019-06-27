@@ -9,8 +9,13 @@ Code calls functions depending on which compiler is used, but there are two main
 - **The caller is responsible for cleaning up the stack**
 ```asm
 <caller>:
-call    printf
-add     esp, 0x10
+push    DWORD PTR [ebp-0x4]
+push    DWORD PTR [epb-0x8]
+call    called_fn
+add     esp, 0x8
+
+<called_fn>:
+ret
 ```
 
 ### stdcall (Standard call)
@@ -19,6 +24,11 @@ add     esp, 0x10
 - Return values are stored in EDX:EAX as in cdecl.
 - **The called function is responsible for cleaning up the stack**
 ```asm
+<caller>:
+push    DWORD PTR [ebp-0x4]
+push    DWORD PTR [ebp-0x8]
+call    called_fn
+
 <called_fn>:
-ret   0x10
+ret     0x8
 ```
