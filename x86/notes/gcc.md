@@ -10,9 +10,9 @@ The prologue looks like this:
 lea    ecx,[esp+0x4]
 and    esp,0xfffffff0
 push   DWORD PTR [ecx-0x4]
-push   ebp                  ; continue as normal
+push   ebp
 mov    ebp,esp
-push   ecx                  ; preserve the value of ecx
+push   ecx
 ```
 
 Q: What is the purpose of this?
