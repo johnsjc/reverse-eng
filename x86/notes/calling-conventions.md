@@ -10,7 +10,7 @@ Code calls functions depending on which compiler is used, but there are two main
 ```asm
 <caller>:
 push    DWORD PTR [ebp-0x4]
-push    DWORD PTR [epb-0x8]
+push    DWORD PTR [ebp-0x8]
 call    called_fn
 add     esp, 0x8
 
