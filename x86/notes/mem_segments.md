@@ -17,10 +17,10 @@ A fixed-size, **writable** section of memory where **uninitialized** global and 
 #### Heap
 - A memory segment the programmer can directly control.
 - Grows and shrinks as needed.
-- Memory is managed with allocator and deallocator algorithms.\
-Reserve memory for heap use and remove reservations to allow that memory to be reused.\
-e.g. malloc() and free()
-- Grows downward toward **higher** memory addresses.
+- Memory is managed with allocator and deallocator algorithms.
+- Allocators reserve memory for heap use. e.g. malloc()
+- Deallocators remove reservations to allow memory to be reused. e.g. free()
+- Grows toward **higher** memory addresses.
 
 stack: dynamic size temporary scratch pad to store local function variables and context during function calls. when a function is called, the stack is used to preserve the location of the next instruction, caller-save registers, and parameters that are passed to the function. These are all stored in stack frames. LIFO structure push and pop. ESP register keeps track of the top of the stack. grows upward toward lower memory addresses.
 
