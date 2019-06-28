@@ -38,3 +38,15 @@ Possible ranges for dwords:
 - Positive 0x00000001 to 0x7FFFFFFF
 - Negative 0x80000000 to 0xFFFFFFFF
 ---
+
+### Architectures
+
+CISC (Complex Instruction Set)
+- Many specialized instructions (manual required)
+- Variable length instructions (1 to 16 bytes)
+- Intel x86
+
+RISC (Reduced Instruction Set)
+- More registers
+- Fewer, fixed-size instructions
+- ARM, MIPS, PowerPC, SPARC
