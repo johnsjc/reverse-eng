@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# bomb.py
+# bomb1.py reversing the main function
 
 import sys
 
