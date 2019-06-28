@@ -1,17 +1,26 @@
+## Memory segments
+
 A compiled program's memory is divided into 5 segments: text/code, data, bss, heap, and stack.
 
-text/code : a fixed-size, read-only section of memory where the assmembled machine language instructions of the program live. EIP is set to the first instruction when the program starts.
+#### Text/code
+A fixed-size, **read-only** section of memory where the assmembled machine language instructions of the program live. \
+EIP is set to the first instruction when the program starts and does the following until the program terminates:
+- Reads the instruction EIP points to
+- Adds the length (in bytes) of the instruction to EIP
 
-1. Read the instruction EIP points to
-2. Add the byte length of the instruction to EIP
-3. Execute the instruction
-4. Repeat step 1.
+#### Data
+A fixed-size, **writable** section of memory where **initialized** global and static variables live.
 
-data: initialized global and static variables
-bss: uninitialized global and static variables
-both data and bss are a fixed size and writable.
+#### BSS
+A fixed-size, **writable** section of memory where **uninitialized** global and static variables live.
 
-heap: a memory segment the programmer can directly control. it's a dynamic size and can grow and shrink as needed. memory is managed with allocator and deallocator algorithms that reserve a memory region for heap use and remove reservations to allow that region to be reused. grows downward toward higher memory addresses malloc() and free()
+#### Heap
+- A memory segment the programmer can directly control.
+- Grows and shrinks as needed.
+- Memory is managed with allocator and deallocator algorithms.\
+Reserve memory for heap use and remove reservations to allow that memory to be reused.\
+e.g. malloc() and free()
+- Grows downward toward **higher** memory addresses.
 
 stack: dynamic size temporary scratch pad to store local function variables and context during function calls. when a function is called, the stack is used to preserve the location of the next instruction, caller-save registers, and parameters that are passed to the function. These are all stored in stack frames. LIFO structure push and pop. ESP register keeps track of the top of the stack. grows upward toward lower memory addresses.
 
