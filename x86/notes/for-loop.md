@@ -12,6 +12,7 @@ int main() {
 0x8048437 <main+17>    mov    dword ptr [ebp - 0xc], 0
 0x804843e <main+24>    jmp    main+49 <0x8048457>
 ; initialize local variable i to 0
+; local variables are always [ebp - <value>]
 ; jump unconditionally to the cmp at main+49
 
 0x8048440 <main+26>    sub    esp, 8
