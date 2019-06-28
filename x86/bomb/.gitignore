@@ -1,3 +1,5 @@
 bomb.py
 bomb.asm
 bomb
+*.pyc
+*.swp
