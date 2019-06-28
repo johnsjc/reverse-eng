@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# bomb2.py
+# bomb2.py main function and program skeleton done.
 
 import sys
 
