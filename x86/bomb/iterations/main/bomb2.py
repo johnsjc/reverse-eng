@@ -3,8 +3,12 @@
 
 import sys
 
-def main(myFile=None):
+myFile = None
+
+def main():
     
+    print(myFile)
+
     initialize_bomb()    
 
     print("Welcome to my fiendish little bomb. You have 6 phases with")
@@ -66,7 +70,7 @@ if __name__ == '__main__':
         try:
             with open(sys.argv[1], "r") as f:
                 myFile = f.read()
-                main(myFile)
+                main() 
         except:
             print("{}: Error: Couldn't open {}".format(*sys.argv))
             sys.exit(8)
