@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# bomb2.py - some refactoring
+# bomb1.1.py - some refactoring of main+0 to main+79
 
 import sys
 
