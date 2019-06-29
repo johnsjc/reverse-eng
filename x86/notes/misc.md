@@ -84,5 +84,5 @@ RISC (Reduced Instruction Set)
 - Intel syntax: with the exception of the LEA instruction, anything in [] treats the value as a memory address (similar to dereferencing a pointer)
 - `mov eax, ebx` move the value from ebx to eax
 - `mov eax, [ebx]` treat the value in ebx as a memory address and move 4 bytes from that address into eax.
-- most complex form is `[base + index*scale + displacement]` e.g. `mov eax, [ebx+ecx*4+10]`
-- displacement could be used for multi-dimensional arrays where the internal arrays are contiguous.
+- Most complex form is `[base + index*scale + displacement]` e.g. `mov eax, [ebx+ecx*4+10]`
+- Displacement could be used for multi-dimensional arrays where the internal arrays are contiguous.
