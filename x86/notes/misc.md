@@ -77,3 +77,12 @@ RISC (Reduced Instruction Set)
 - r/m32 is `disp(base, index, scale)`\
  `mov 0x8(%ebp), %eax` vs `mov eax, dword ptr ebp+0x8`\
  `call *-0xe8(%ebx, %esi, 4)` vs `call dword ptr [ebx+esi*4-0xe8]`
+---
+
+### r/m32 Addressing Forms
+- A value either from a register or memory.
+- Intel syntax: with the exception of the LEA instruction, anything in [] treats the value as a memory address (similar to dereferencing a pointer)
+- `mov eax, ebx` move the value from ebx to eax
+- `mov eax, [ebx]` treat the value in ebx as a memory address and move 4 bytes from that address into eax.
+- most complex form is `[base + index*scale + displacement]` e.g. `mov eax, [ebx+ecx*4+10]`
+- displacement could be used for multi-dimensional arrays where the internal arrays are contiguous.
