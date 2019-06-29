@@ -28,10 +28,4 @@ A fixed-size, **writable** section of memory where **uninitialized** global and 
 - Grows toward **lower** memory addresses.
 - Keeps track of the call chain with a linked list of **stack frames**.
 - ESP register always points to the top (lowest address)
-
-##### Stack frame
-- Function parameters
-- Local variables
-- Caller/callee save registers
-- SFP (saved frame pointer i.e. EBP)
-- Return address (EIP)
+- Holds return address, local variables, and preserved register values.
