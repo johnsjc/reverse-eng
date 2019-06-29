@@ -19,5 +19,19 @@ or    eax,DWORD PTR [ebp-0xc]
 xor   eax,eax
 ```
 
-### NOT
+
+
+
+#### CMP
+- Subtracts the second operand from the first and sets status flags in the EFLAGS register.
+- While SUB has to have a result stored somewhere, cmp discards it.
+
+#### TEST
+- Computes the bitwwise logical AND of the operands and sets flags in the EFLAGS register. The result is discarded.
+
+
+#### NOT
+- One's complement negation (flip all the bits)
+- Result stored in the first operand
+
 - 
