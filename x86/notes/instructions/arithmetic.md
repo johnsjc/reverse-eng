@@ -43,13 +43,15 @@ shr   ecx, 0x3
 - Shift Arithmetic Right
 - The same as SHR but fills with the most significant bit to keep the sign.
 
-`ecx = 0xb3`
-`sar ecx, 0x2`
-`; 10110011 -> 11101100 (0xec)`
+```asm
+; ecx = 0xb3
+sar ecx, 0x2
+; 10110011 -> 11101100 (0xec)
+```
 
 The compiler usually does SAR in the following way:
 ```asm
-mov   edx, dword ptr [ebp-0xc]
+mov   edx, dword ptr [ebp-0xc] ; dividend
 mov   eax, edx
 
 sar   eax, 0x1f 
