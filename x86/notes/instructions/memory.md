@@ -66,8 +66,7 @@ call    memcpy
 push    ebp
 mov     ebp, esp
 
-; callee-save registers
-push    edi
+push    edi                         ; callee-save registers
 push    esi
 
 mov     esi, dword ptr [ebp+0xc]    ; &a - source
@@ -92,7 +91,7 @@ jb                                  ; jmp if ecx < 0x8
 If the jump is taken you end up in a series of `mov` instructions
 otherwise, memcpy prefers rep movs.
 
-```
+```asm
 rep movs  dword ptr es:[edi] dword ptr es:[esi]
 . . .
 mov     eax, dword ptr [ebp+0x8]    ; return address of destination
