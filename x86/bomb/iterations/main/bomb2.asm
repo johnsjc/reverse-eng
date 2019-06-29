@@ -21,7 +21,7 @@
 ; unconditional jump to MAIN80
  80489c2:	a1 48 b6 04 08       	mov    eax,ds:0x804b648
  80489c7:	a3 64 b6 04 08       	mov    ds:0x804b664,eax
- 80489cc:     eb 62                 jmp    8048a30 <main+0x80> 
+ 80489cc:       eb 62                 jmp    8048a30 <main+0x80> 
  80489ce:	89 f6                	mov    esi,esi
 
 ; MAIN20
