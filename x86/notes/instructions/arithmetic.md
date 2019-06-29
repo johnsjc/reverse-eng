@@ -78,8 +78,33 @@ Has three different forms:
 - `imul reg, r/m32` multiplies the register by the r/m32 and stores the result in the register.
 - `imul reg, r/m32, immediate` multiplies the r/m32 by the immediate and stores the result in the register.
 
+### MUL
+Unsigned multiplication.
+- `mul r/m32` multiply EAX by the r/m32 and store the result across EDX:EAX.
+
 ### DIV
 Unsigned division.\
 Has two forms:
 - `div ax, r/m32` stores the quotient in AL and the remainder in AH.
 - `div eax, r/m32` divides EDX:EAX by the r/m32 and stores the quotient in EAX and remainder in EDX.
+
+### NEG
+Replaces the value of the operand with its two's complement.
+```asm
+; eax = 0x5 or 00000101
+neg     eax ; => 11111010 + 1 => ffffffffb
+```
+
+### INC
+Increments a register by 1.
+```asm
+; eax = 0x5
+inc     eax ; => 0x6
+```
+
+### DEC
+Decrements a register by 1.
+```asm
+; eax = 0x5
+dec     eax ; => 0x4
+```
