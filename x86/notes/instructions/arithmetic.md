@@ -39,6 +39,36 @@ shr   ecx, 0x3
 ; CF = 1
 ```
 
+### SAR
+- Shift Arithmetic Right
+- The same as SHR but fills with the most significant bit to keep the sign.
+
+`ecx = 0xb3`
+`sar ecx, 0x2`
+`; 10110011 -> 11101100 (0xec)`
+
+The compiler usually does SAR in the following way:
+```asm
+mov   edx, dword ptr [ebp-0xc]
+mov   eax, edx
+
+sar   eax, 0x1f 
+; eax = 0 or ffffffff depending on most significant bit
+
+shr   eax, 0x1c
+; if eax was 0, it still is.
+; otherwise the 4 least significant bits are set to 0xF
+
+add   eax, edx
+; add 0xF or 0 to the value to be shifted
+
+sar   eax, 0x4
+; do the actual shift
+```
+Q: Why are we adding something if it's just going to be shifted away?
+A: This guarantees that CF is 1 IIF the original dividend was signed.
+
+
 ### IMUL
 Signed multiplication. Equivalent to `mul` if dealing with 32-bit operands.\
 Has three different forms:
