@@ -57,3 +57,23 @@ RISC (Reduced Instruction Set)
 - Bytes can be interpreted in different ways depending on where the CPU starts executing it from
 - can be abused because of inability to validate intended instructions - ROP, code obfuscation, polymorphic/self-modifying code
 - RISC typically have fixed instruction sizes which are aligned making disassembly much easier.
+---
+
+### Intel vs AT&T syntax
+
+#### Intel
+- Destination <- source
+- `mov ebp, esp`
+- `add esp, 0x14`
+
+#### AT&T
+- Source -> destination
+- `mov %esp, %ebp`
+- `add $0x14, %esp`\
+
+- Registers are prefixed with %
+- Immediates are prefixed with $
+- Instructions also have suffixes for length, e.g. `movl` to move 4 bytes, `movb` to move 1 byte, `mov` to move 2 bytes
+- r/m32 is `disp(base, index, scale)`\
+ `mov 0x8(%ebp), %eax` vs `mov eax, dword ptr ebp+0x8`\
+ `call *-0xe8(%ebx, %esi, 4)` vs `call dword ptr [ebx+esi*4-0xe8]`
