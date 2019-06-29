@@ -41,7 +41,7 @@ int main() {
   mystruct_t a, b;
   a.var1 = 0xFF;
   memcpy(&b, &a, sizeof(mystruct_t));
-  return 0xAce0Ba5e;
+  return 0xdeadbeef;
 }
 ```
 
@@ -57,7 +57,7 @@ push    0x8                         ; size_of(struct_t)
 lea     eax, [ebp-0x8]
 push    eax                         ; &a
 lea     ecx, [ebp-0x10]
-push    ecx                         ;&b
+push    ecx                         ; &b
 call    memcpy
 ```
 
