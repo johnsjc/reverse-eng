@@ -67,7 +67,7 @@ add   eax, edx
 sar   eax, 0x4
 ; do the actual shift
 ```
-Q: Why are we adding something if it's just going to be shifted away?
+Q: Why are we adding something if it's just going to be shifted away?\
 A: This guarantees that CF is 1 IIF the original dividend was signed.
 
 
