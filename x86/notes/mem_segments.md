@@ -22,15 +22,16 @@ A fixed-size, **writable** section of memory where **uninitialized** global and 
 - Deallocators remove reservations to allow memory to be reused. e.g. free()
 - Grows toward **higher** memory addresses.
 
-stack: dynamic size temporary scratch pad to store local function variables and context during function calls. when a function is called, the stack is used to preserve the location of the next instruction, caller-save registers, and parameters that are passed to the function. These are all stored in stack frames. LIFO structure push and pop. ESP register keeps track of the top of the stack. grows upward toward lower memory addresses.
-
-stack frame: function parameters, local variables and two pointers: SFP (saved frame pointer EBP) and return address (EIP)
-
-
-
 #### Stack
-- An area of RAM designated by the OS when a program starts.
-- LIFO data structure using push/pop operations.
-- Grows towards lower memory addresses.
-- ESP points at the top of the stack (lowest address)
-- Holds local variables, arguments for functions, and keeps track of the function call chain using stack frames.
+- Dynamic size
+- LIFO data structure that uses push/pop operations.
+- Grows toward **lower** memory addresses.
+- Keeps track of the call chain with a linked list of **stack frames**.
+- ESP register always points to the top (lowest address)
+
+##### Stack frame
+- Function parameters
+- Local variables
+- Caller/callee save registers
+- SFP (saved frame pointer i.e. EBP)
+- Return address (EIP)
