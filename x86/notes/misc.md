@@ -50,3 +50,10 @@ RISC (Reduced Instruction Set)
 - More registers
 - Fewer, fixed-size instructions
 - ARM, MIPS, PowerPC, SPARC
+
+---
+
+### Variable length instuctions
+- Bytes can be interpreted in different ways depending on where the CPU starts executing it from
+- can be abused because of inability to validate intended instructions - ROP, code obfuscation, polymorphic/self-modifying code
+- RISC typically have fixed instruction sizes which are aligned making disassembly much easier.
