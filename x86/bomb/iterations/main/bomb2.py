@@ -1,14 +1,11 @@
 #!/usr/bin/python
-# bomb2.py 
-# main function and program skeleton done.
+# bomb2.py
 
 import sys
 
-myFile = None
+m804b664 = None
 
-def main():
-    
-    print(myFile)
+def main():  
 
     initialize_bomb()    
 
@@ -65,12 +62,13 @@ if __name__ == '__main__':
     num_args = len(sys.argv)
     
     if len(sys.argv) == 1:
+        m804b664 = "m804b648"
         main()
     
     elif len(sys.argv) == 2:
         try:
             with open(sys.argv[1], "r") as f:
-                myFile = f.read()
+                m804b664 = f.read()
                 main() 
         except:
             print("{}: Error: Couldn't open {}".format(*sys.argv))
