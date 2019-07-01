@@ -91,6 +91,7 @@
  8048c49:	74 44                	je     8048c8f <phase_3+0xf7>
  8048c4b:	e8 ac 08 00 00       	call   80494fc <explode_bomb>
  8048c50:	eb 3d                	jmp    8048c8f <phase_3+0xf7>
+
 ; a = 5
 ; b = 't'
 ; c = 458
@@ -108,6 +109,7 @@
  8048c6d:	74 20                	je     8048c8f <phase_3+0xf7>
  8048c6f:	e8 88 08 00 00       	call   80494fc <explode_bomb>
  8048c74:	eb 19                	jmp    8048c8f <phase_3+0xf7>
+
 ; a = 7
 ; b = 'b'
 ; c = 524 
