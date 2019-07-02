@@ -54,6 +54,7 @@ def phase_6(answer):
     # Order the nodes according to our input.
     # e.g. an input of 1 4 5 6 2 3
     # results in [node1, node4, node5, node6, node2, node3]  
+    
     sorted_nodes = []
     for i in range(6):
         node_pos = 1
