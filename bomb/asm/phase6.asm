@@ -38,7 +38,7 @@
 ; =============================
 ; Loops 1 and 2
 ; Checking to see if the input consists of six unique
-; numbers that are in the range [0, 6]
+; numbers that are in the range [1, 6]
 ; e.g. 1 2 3 4 5 6
 ;
 ;
