@@ -9,9 +9,6 @@ class Node(object):
         self.value = value
         self.next_node = next_node
 
-    def __repr__(self):
-        return str(self.number)
-
 nodes = [
     Node(1, 0x0fd, None),
     Node(2, 0x2d5, None),
