@@ -1,0 +1,8 @@
+bomb.py
+bomb.asm
+bomb
+notes
+answers
+*.pyc
+*.swp
+.gdb_history
