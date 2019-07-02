@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # answer generator
 
-from python import phase1, phase2, phase3, phase4, phase5 
+from python import phase1, phase2, phase3, phase4, phase5, phase6 
 
 answers = [
     phase1.solve(),
@@ -9,6 +9,7 @@ answers = [
     phase3.solve(),
     phase4.solve(),
     phase5.solve(),
+    phase6.solve(),
 ]
 
 print("Generating answer file...")
