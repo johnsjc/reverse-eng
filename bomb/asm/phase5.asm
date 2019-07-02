@@ -49,7 +49,7 @@
  8048d6b:	c6 45 fe 00          	mov    BYTE PTR [ebp-0x2],0x0
  8048d6f:	83 c4 f8             	add    esp,0xfffffff8
 
-; call strings_not_equal("giants", input)
+; call strings_not_equal("giants", ciphertext)
  8048d72:	68 0b 98 04 08       	push   0x804980b
  8048d77:	8d 45 f8             	lea    eax,[ebp-0x8]
  8048d7a:	50                   	push   eax
