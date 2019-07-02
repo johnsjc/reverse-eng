@@ -83,5 +83,5 @@ def solve():
 if __name__ == "__main__":
     answer = solve()
     if answer:
-        print("Bomb defused\n.")
+        print("Bomb defused.\n")
         print("Answer: {}".format(answer))
