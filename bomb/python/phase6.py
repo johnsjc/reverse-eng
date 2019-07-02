@@ -35,7 +35,7 @@ def phase_6(answer):
     nums = [int(x) for x in answer.split()]
     
     # Check to see if the input is 6 unique numbers
-    # in the range [0, 6]
+    # in the range [1, 6]
     for i in range(6):
         if (nums[i] - 1) < 0 or (nums[i] - 1) > 5:
             explode_bomb()
