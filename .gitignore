@@ -5,3 +5,4 @@ answers
 *.pyc
 *.swp
 .gdb_history
+__init__.py
