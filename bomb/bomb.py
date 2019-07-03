@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# Reverse engineered CU Binary Bomb
-# With some slight modifications (Python magic)
+# Reverse engineered CMU Binary Bomb
+# With some slight modifications to make more pythonic
 
 import sys
 import time
