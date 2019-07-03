@@ -222,7 +222,6 @@ def secret_phase():
         explode_bomb()
 
     print("Wow!, You've defused the secret stage!")
-    phase_defused()
 
 
 def read_line():
