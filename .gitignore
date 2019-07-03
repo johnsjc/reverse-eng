@@ -1,7 +1,3 @@
-bomb.py
-bomb.asm
-notes
-answers
 *.pyc
 *.swp
 .gdb_history
