@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Reverse engineered CU Binary Bomb
-# With some slight modifications
+# With some slight modifications (Python magic)
 
 import sys
 import time
@@ -15,8 +15,7 @@ def next_answer():
 answer_gen = next_answer()
 
 
-def initialize_bomb():
-
+def initialize_bomb():    
     def signal_handler(sig, _):
         print("So you think you can stop the bomb with ctrl-c, do you?")
         time.sleep(3)
@@ -25,6 +24,7 @@ def initialize_bomb():
 
     signal.signal(signal.SIGINT, signal_handler)
 
+    
 def explode_bomb():
     print("\nBOOM!!!\nThe bomb exploded.")
     sys.exit(16)
@@ -99,7 +99,6 @@ def phase_3(answer):
 
 
 def phase_4(answer):
-
     def fib(x):
         if x <= 1: return 1
         else: return fib(x - 2) + fib(x - 1)
@@ -128,7 +127,6 @@ def phase_5(answer):
 
 
 def phase_6(answer):
-
     class Node(object):
         def __init__(self, number, value, next_node):
             self.number = number
@@ -234,7 +232,6 @@ def read_line():
         line = next(answer_gen)
         global num_answers_given
         num_answers_given += 1
-
     except:
         while line is None or line.isspace():
             line = input().strip()
