@@ -188,13 +188,13 @@ def secret_phase():
                     Node(0x16,
                         Node(0x14),
                         Node(0x23))),
-            Node(0x32,
-                Node(0x2d,
-                    Node(0x28),
-                    Node(0x2f)),
-                Node(0x6b,
-                    Node(0x63),
-                    Node(0x3e9))))               
+                Node(0x32,
+                    Node(0x2d,
+                        Node(0x28),
+                        Node(0x2f)),
+                    Node(0x6b,
+                        Node(0x63),
+                        Node(0x3e9))))               
 
     def fun7(node, answer):
         if not node:
