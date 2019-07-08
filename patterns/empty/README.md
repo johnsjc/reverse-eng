@@ -15,42 +15,26 @@ int main(void)
 
 ### GCC x86
 
-#### No optimizations
 ```asm
-< main>:
-push   ebp
-mov    ebp,esp
-mov    eax,0x0
-pop    ebp
-ret    
-```
-
-#### Optimizations
-```asm
-< main>:
-xor    eax,eax
-ret    
+<x86 main>:						      |	<x86o main>:
+push   ebp						      |	xor    eax,eax
+mov    ebp,esp						      <
+mov    eax,0x0						      <
+pop    ebp						      <
+ret    								ret    
 ```
 
 ---
 
 ### GCC x64
 
-#### No optimizations
 ```asm
-< main>:
-push   rbp
-mov    rbp,rsp
-mov    eax,0x0
-pop    rbp
-ret    
-```
-
-#### Optimizations
-```asm
-< main>:
-xor    eax,eax
-ret    
+<x64 main>:						      |	<x64o main>:
+push   rbp						      |	xor    eax,eax
+mov    rbp,rsp						      <
+mov    eax,0x0						      <
+pop    rbp						      <
+ret    								ret    
 ```
 
 ---
