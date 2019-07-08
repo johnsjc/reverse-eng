@@ -1,5 +1,7 @@
 notes
 x86*
 x64*
+arm*
+obs
 *.asm
 book
