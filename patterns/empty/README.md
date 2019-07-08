@@ -26,7 +26,7 @@ ret    								ret
 
 ---
 
-### Intel x64 (gcc 4.7.0)
+### Intel x64 (gcc 7.4.0)
 
 ```asm
 <x64 main>:						      |	<x64o main>:
@@ -39,7 +39,7 @@ ret    								ret
 
 ---
 
-### ARM (gcc 4.7.0)
+### ARM (gcc 7.4.0)
 ```asm
 <arm main>:						      |	<armo main>:
 push	{fp}						      |	mov	r0, #0
@@ -53,7 +53,7 @@ bx	lr							bx	lr
 
 ---
 
-### ARM Thumb Mode (gcc 4.7.0)
+### ARM Thumb Mode (gcc 7.4.0)
 ```asm
 <arm_thumb main>:					      |	<arm_thumbo main>:
 push	{r7, lr}					      |	movs	r0, #0
