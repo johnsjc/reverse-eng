@@ -1,6 +1,5 @@
 notes
 pun
-x86
-x86o
-x64
-x64o
+x86*
+x64*
+*.asm
