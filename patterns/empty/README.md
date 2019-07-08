@@ -58,6 +58,7 @@ ret
 ### Observations
 
 * The x86 and x64 optimized versions are identical.
-    * The return value is put into `eax`, regardless. It is a 32-bit integer.
-    * `xor eax, eax` is preferred over `mov eax, 0x0`
+    * The return value is put into `eax` even in x64 (not `rax`)
+        * Indicates the return value is a 32-bit integer.
+    * `xor eax, eax` is preferred over `mov eax, 0x0` (faster)
 * Function prologue and epilogue is unnecessary.
