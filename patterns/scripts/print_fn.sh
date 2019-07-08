@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# Helper script to print the instructions for a function in an objdump file.
+
 # Output a first line like <x86 main>: 
 echo "<${1%%.*} $2>:"
 
