@@ -2,7 +2,7 @@
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Uses diff to compare assembly instructions for the same function in two files.
-colordiff -y <($DIR/printfn.sh $1 $3) <($DIR/printfn.sh $2 $3)
+colordiff -y <($DIR/print_fn.sh $1 $3) <($DIR/print_fn.sh $2 $3)
 
 # Example:
 #
