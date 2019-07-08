@@ -47,7 +47,7 @@ ret
 ```
 
 #### Optimizations
-```
+```asm
 < main>:
 xor    eax,eax
 ret    

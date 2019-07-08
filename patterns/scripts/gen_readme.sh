@@ -36,7 +36,7 @@ $(print_fn.sh ./x64.asm main)
 \`\`\`
 
 #### Optimizations
-\`\`\`
+\`\`\`asm
 $(print_fn.sh ./x64o.asm main)
 \`\`\`
 
