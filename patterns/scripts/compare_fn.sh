@@ -1,3 +1,4 @@
+#!/bin/bash
 # Get the script directory so we can run the printfn helper function
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
