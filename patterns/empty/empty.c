@@ -1,6 +1,6 @@
-// An empty function
-
-#include <stdio.h>
+/* An empty function
+*
+*/
 
 int main(void)
 {
