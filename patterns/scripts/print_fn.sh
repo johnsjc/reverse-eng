@@ -9,7 +9,7 @@ echo "<${1%%.*} $2>:"
 # read all lines from function_name>: until blank line
 # remove all lines after ret (useless nops, garbage instructions, etc) 
 # remove the first line to replace with our echo 
-cut -f2-4 $1 \
+cut -f3-4 $1 \
 | awk -v pattern="$2>:" '$0 ~ pattern' RS= \
 | awk '1;/^ret/{exit}' \
 | sed 1d 
