@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Script to compile a C program to multiple architectures
 # for the purposes of looking at differences in the assembly.
 # Stack canaries and PIE have been removed for learning purposes.
