@@ -19,19 +19,27 @@ compile_intel() {
 compile_arm() {
     # Compile ARM mode
     arm-linux-gnueabi-gcc $1 -o arm
+    arm-linux-gnueabi-gcc $1 -o armo -O4
+
+    # Compile Thumb mode
     arm-linux-gnueabi-gcc $1 -o arm_thumb -mthumb
+    arm-linux-gnueabi-gcc $1 -o arm_thumbo -mthumb -O4
 }
 
 dump_assembly() {
     # Dump Intel
     objdump -M intel -D x86 > x86.asm
     objdump -M intel -D x64 > x64.asm
+    
     objdump -M intel -D x86o > x86o.asm
     objdump -M intel -D x64o > x64o.asm
 
     # Dump ARM
     arm-linux-gnueabi-objdump -D arm > arm.asm
+    arm-linux-gnueabi-objdump -D armo > armo.asm
+    
     arm-linux-gnueabi-objdump -D arm_thumb > arm_thumb.asm
+    arm-linux-gnueabi-objdump -D arm_thumbo > arm_thumbo.asm
 }
 
 compile_intel $1
