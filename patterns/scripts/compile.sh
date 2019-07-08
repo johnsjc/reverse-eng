@@ -8,7 +8,7 @@ compile_gcc() {
     gcc -o x86 -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32
     gcc -o x86o -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32 -O4
     
-    # Copmile for x64
+    # Compile for x64
     gcc -o x64 -fno-stack-protector -fno-pie -no-pie $1    
     gcc -o x64o -fno-stack-protector -fno-pie -no-pie $1 -O4
 }
