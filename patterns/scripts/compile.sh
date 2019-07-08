@@ -6,22 +6,34 @@
 # GCC supported. Will add clang, etc. later
 # Targets: x86, x64, ARM, ARM64, MIPS
 
-compile_gcc() {
+compile_intel() {
     # Compile for x86
-    gcc -o x86 -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32
-    gcc -o x86o -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32 -O4
+    gcc -o x86 -D_FORTIFY_SOURCE=0 -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32
+    gcc -o x86o -D_FORTIFY_SOURCE=0 -mpreferred-stack-boundary=2 -fno-stack-protector -fno-pie -no-pie $1 -m32 -O4
     
     # Compile for x64
-    gcc -o x64 -fno-stack-protector -fno-pie -no-pie $1    
-    gcc -o x64o -fno-stack-protector -fno-pie -no-pie $1 -O4
+    gcc -o x64 -D_FORTIFY_SOURCE=0 -fno-stack-protector -fno-pie -no-pie $1    
+    gcc -o x64o -D_FORTIFY_SOURCE=0 -fno-stack-protector -fno-pie -no-pie $1 -O4
+}
+
+compile_arm() {
+    # Compile ARM mode
+    arm-linux-gnueabi-gcc $1 -o arm
+    arm-linux-gnueabi-gcc $1 -o arm_thumb -mthumb
 }
 
 dump_assembly() {
+    # Dump Intel
     objdump -M intel -D x86 > x86.asm
     objdump -M intel -D x64 > x64.asm
     objdump -M intel -D x86o > x86o.asm
     objdump -M intel -D x64o > x64o.asm
+
+    # Dump ARM
+    arm-linux-gnueabi-objdump -D arm > arm.asm
+    arm-linux-gnueabi-objdump -D arm_thumb > arm_thumb.asm
 }
 
-compile_gcc $1
+compile_intel $1
+compile_arm $1
 dump_assembly

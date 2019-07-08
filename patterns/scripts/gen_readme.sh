@@ -30,5 +30,9 @@ $(diff -y <(print_fn.sh x64.asm main) <(print_fn.sh x64o.asm main))
 
 ---
 
+### GCC ARM
+\`\`\`asm
+$(diff -y <(print_fn.sh arm.asm main) <(print_fn.sh arm_thumb.asm main))
+
 ### Observations
 EOF
