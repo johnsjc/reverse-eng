@@ -49,5 +49,8 @@ mov	r0, r3						      |	movs	r0, r3
 add	sp, fp, #0					      |	mov	sp, r7
 pop	{fp}						      |	pop	{r7, pc}
 bx	lr						      <
+```
+
+---
 
 ### Observations
