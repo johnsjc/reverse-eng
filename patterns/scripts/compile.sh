@@ -4,6 +4,7 @@
 # for the purposes of looking at differences in the assembly.
 # Stack canaries and PIE have been removed for learning purposes.
 # GCC supported. Will add clang, etc. later
+# Targets: x86, x64, ARM, ARM64, MIPS
 
 compile_gcc() {
     # Compile for x86
