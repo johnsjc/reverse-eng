@@ -16,28 +16,16 @@ $(cat $DIR.c)
 
 ### GCC x86
 
-#### No optimizations
 \`\`\`asm
-$(print_fn.sh ./x86.asm main)
-\`\`\`
-
-#### Optimizations
-\`\`\`asm
-$(print_fn.sh ./x86o.asm main)
+$(diff -y <(print_fn.sh x86.asm main) <(print_fn.sh x86o.asm main))
 \`\`\`
 
 ---
 
 ### GCC x64
 
-#### No optimizations
 \`\`\`asm
-$(print_fn.sh ./x64.asm main)
-\`\`\`
-
-#### Optimizations
-\`\`\`asm
-$(print_fn.sh ./x64o.asm main)
+$(diff -y <(print_fn.sh x64.asm main) <(print_fn.sh x64o.asm main))
 \`\`\`
 
 ---
