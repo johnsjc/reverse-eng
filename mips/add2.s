@@ -1,4 +1,4 @@
-# add2.asm
+# add2.s
 # Computes the sum of two numbers supplied by the user,
 # and prints the result.
 #
