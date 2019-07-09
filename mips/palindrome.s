@@ -1,4 +1,4 @@
-# palindrome.asm
+# palindrome.s
 # Given a string, determine if it is a palindrome.
 # Case-insensitive and ignores characters in the ignore string.
 #
