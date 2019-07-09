@@ -1,4 +1,4 @@
-# multiples.asm
+# multiples.s
 # Given two numbers, A and B. Computes and displays the multiples
 # of A from A to A * B. If B <= 0, then terminate.
 #
