@@ -48,7 +48,7 @@ loop:
             mult    $t1, $t3                # Multiply D by 10.
             mfhi    $t4                     # Move higher 32-bits into $t4
             bnez    $t4, overflow           # If $t4 is non zero, we overflowed!
-            mflo    $t1                     # Set $t1 equal to the result of the multiplcation.
+            mflo    $t1                     # Set $t1 equal to the result of the multiplication.
             blt     $t1, $0, overflow       # Make sure the result is not negative.
 
             sub     $t9, $t9, '0'           # $t9 = *S - '0' (ASCII zero)
