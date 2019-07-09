@@ -1,4 +1,4 @@
-# hello.asm
+# hello.s
 # Prints the string Hello world!
 #
 # Registers used:
