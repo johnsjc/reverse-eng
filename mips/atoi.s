@@ -59,7 +59,7 @@ loop:
             
 end_loop:
 
-            beq     $t4, 1, invalid_input     # No number was converted
+            beq     $t4, 1, invalid_input   # No number was converted
 
             mul     $t1, $t1, $t2           # Change the sign accordingly
 
