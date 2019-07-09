@@ -1,4 +1,4 @@
-# add.asm
+# add.s
 # Computes the sum of 1 and 2, storing the result in register $t0.
 #
 # Registers used:
