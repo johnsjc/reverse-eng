@@ -1,15 +1,14 @@
 # atoi.s
-# 
 # Reads a string from stdin and interprets it as a number.
 #
 # Registers used:
 #   a0, v0  :   syscall parameters
-#   t0  :   S (input string)
-#   t1  :   D (integer)
-#   t2  :   Sign (1 or -1)
-#   t3  :   Constant 10 (base 10)
-#   t4  :   Flag for invalid input (0 or 1)
-#   t9  :   Temporary
+#   t0      :   S (input string)
+#   t1      :   D (integer)
+#   t2      :   Sign multiplier (1 or -1)
+#   t3      :   Constant 10 (base 10) required for mult instruction.
+#   t4      :   Flag for invalid input (0 or 1)
+#   t9      :   Temporary variable
 #
 
             .text
@@ -24,7 +23,7 @@ main:
             syscall
 
 
-            la      $t0, buffer             # $t0 = S (input string) .
+            la      $t0, buffer             # $t0 = S (input string).
             li      $t1, 0                  # $t1 = D (initialized to zero).
             li      $t3, 10                 # mult requres register arguments.
             li      $t4, 1                  # Input is not valid by default.
