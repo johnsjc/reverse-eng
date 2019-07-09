@@ -18,12 +18,12 @@ compile_intel() {
 
 compile_arm() {
     # Compile ARM mode
-    arm-linux-gnueabi-gcc $1 -o arm
-    arm-linux-gnueabi-gcc $1 -o armo -O4
+    arm-linux-gnueabi-gcc $1 -o arm -static
+    arm-linux-gnueabi-gcc $1 -o armo -O4 -static
 
     # Compile Thumb mode
-    arm-linux-gnueabi-gcc $1 -o arm_thumb -mthumb
-    arm-linux-gnueabi-gcc $1 -o arm_thumbo -mthumb -O4
+    arm-linux-gnueabi-gcc $1 -o arm_thumb -mthumb -static
+    arm-linux-gnueabi-gcc $1 -o arm_thumbo -mthumb -O4 -static
 }
 
 dump_assembly() {
