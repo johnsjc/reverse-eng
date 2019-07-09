@@ -1,4 +1,4 @@
-# larger.asm
+# larger.s
 # Prints the larger of the two numbers supplied by the user.
 #
 # Registers used:
