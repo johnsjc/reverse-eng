@@ -2,6 +2,7 @@
 
 RISC architecture where each instruction is 32-bits (4 bytes).
 
+Bitfield:
 ```
 +-----------+--------+--------+--------+--------+--------+--------+
 |           | 6 bits | 5 bits | 5 bits | 5 bits | 5 bits | 6 bits |
