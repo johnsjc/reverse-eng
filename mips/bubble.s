@@ -91,7 +91,7 @@ end_bubble_sort_loop:
             b       bubble_sort            
             
 end_bubble_sort:
-            li      $t7, 0
+            li      $t7, 0                          # sorted = true
             b       print_numbers
 
 
