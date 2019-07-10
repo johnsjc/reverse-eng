@@ -68,18 +68,19 @@ bubble_sort_loop:
             sub     $t3, $t3, 1
 
             mul     $t4, $t3, 4                     # $t4 is offset into numbers array
-            addu    $t1, $t1, $t4                        
-            lb      $t5, ($t1)                      # $t5 = numbers[i-1]
-
-            addu    $t1, $t1, 4
-            lb      $t6, ($t1)                      # $t6 = numbers[i]
+            addu    $t1, $t1, $t4                   # $t1 = numbers[i-1]
             
-            bgt     $t6, $t5, end_swap              # if numbers[i] > numbers[i-1], skip.
+            lb      $t5, ($t1)                      # $t5 = *numbers[i-1]
+            
+            addu    $t1, $t1, 4
+            lb      $t6, ($t1)                      # $t6 = *numbers[i]
+            
+            bgt     $t6, $t5, end_swap              # if *numbers[i] > *numbers[i-1], skip.
 swap:       
-            sw      $t5, ($t1)                      # numbers[i] = numbers[i-1]
+            sw      $t5, ($t1)                      # numbers[i] = *numbers[i-1]
             
             subu    $t1, $t1, 4                     
-            sw      $t6, ($t1)                      # numbers[i-1] = numbers[i]
+            sw      $t6, ($t1)                      # numbers[i-1] = *numbers[i]
             
             li      $t2, 0                          # swapped = true
 end_swap:
