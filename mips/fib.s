@@ -14,7 +14,7 @@
 fib:
             bgt     $a0, 1, fib_recurse         # if n < 2, return without making stack frame
             li      $v0, 1
-            jr $ra
+            jr      $ra
 
 fib_recurse:
             subu    $sp, $sp, 32                # frame size = 32 bytes
