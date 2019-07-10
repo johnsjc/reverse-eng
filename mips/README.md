@@ -26,3 +26,23 @@ The first six bits of each instruction are the `op` field.
   * `destination` = 10000
   * `shift` = 00000
   * `func` = 100000 (`add` operation)  
+
+#### Calling Convention
+* The caller must do the following:
+    * Arguments go in the `$a0-$a3` registers. Additional arguments are pushed on the stack.
+    * Save any **caller-save registers** (`$t0-$t9`) which are used by the caller.
+    * Pass control to the called function with a `jal` or `jalr` instruction.
+    * Restore the caller-save registers after the call.
+    * Pop any arguments that were pushed on the stack.
+    * Extract the return value from `$v0`.
+* The callee must do the following:
+    * Create a stack frame 
+        * Subtract the frame size from the stack pointer `$sp`.
+        * The minimum size if 32 bytes.
+    * Save any **callee-save registers** (`$s0-$s7`, `$fp`, and `$ra`) that are used by the function.
+        * The frame pointer `$fp` must always be saved.
+        * The return address `$ra` is only saved if the function calls another function.
+    * Restore the callee-save registers before returning.
+    * Put the return value in `$v0`.
+    * Jump back to `$ra` using the `$jr` instruction.
+    * 
