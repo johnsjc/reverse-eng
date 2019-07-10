@@ -38,7 +38,7 @@ The first six bits of each instruction are the `op` field.
 * The callee must do the following:
     * Create a stack frame 
         * Subtract the frame size from the stack pointer `$sp`.
-        * The minimum size if 32 bytes.
+        * The minimum size of a stack frame is **32 bytes**.
     * Save any **callee-save registers** (`$s0-$s7`, `$fp`, and `$ra`) that are used by the function.
         * The frame pointer `$fp` must always be saved.
         * The return address `$ra` is only saved if the function calls another function.
