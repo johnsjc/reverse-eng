@@ -44,4 +44,4 @@ The first six bits of each instruction are the `op` field.
         * The return address `$ra` is only saved if the function calls another function.
     * Restore the callee-save registers before returning.
     * Put the return value in `$v0`.
-    * Jump back to `$ra` using the `$jr` instruction. 
+    * Jump back to `$ra` using the `jr` instruction. 
