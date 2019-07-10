@@ -33,8 +33,6 @@ get_numbers_loop:
             add     $t0, $t0, 1                     # i++
             b       get_numbers_loop
 end_get_numbers:
-            b       print_numbers
-
 
 print_numbers:                                      
             li      $t0, 0                          # i = 0
