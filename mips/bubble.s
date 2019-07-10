@@ -34,6 +34,7 @@ get_numbers_loop:
             b       get_numbers_loop
 end_get_numbers:
 
+
 print_numbers:                                      
             li      $t0, 0                          # i = 0
             la      $t1, numbers                    # $t1 points to numbers arr
