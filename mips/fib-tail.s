@@ -3,15 +3,6 @@
 # Computes the fibonacci sequence.
 # Uses tail recursion.
 #
-# func fib(n, a=1, b=1)
-# {
-#   if n < 2: 
-#       return b
-#   else:
-#       return fib(n - 1, b, a + b)
-# }
-# 
-#
 # Registers used:
 #   a0, a1, a2  :   function arguments
 #   v0          :   function return value / syscall argument
