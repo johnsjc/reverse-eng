@@ -32,11 +32,10 @@ fib_body:
             jal     fib                         # call fib(n - 1, b, a + b)
 
 epilogue:
-            lw      $ra, 28($sp)                # restore everything
+            lw      $ra, 28($sp)                # restore everything and return
             lw      $fp, 24($sp)
             addu    $sp, $sp, 32                
-
-            jr      $ra                         # return
+            jr      $ra                         
 
 
 main:
