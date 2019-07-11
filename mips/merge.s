@@ -12,7 +12,7 @@ main:
             addu    $fp, $sp, 32
 
             la      $a0, list_a                         # first argument:  &list_a
-            li      $a1, 1                              # second argument: start_value
+            li      $a1, 7                              # second argument: start_value
             li      $a2, 2                              # third arument:   step
             jal     populate_list                       # list_a = [1, 3, 5, 7]
             move    $a0, $v0
@@ -22,6 +22,12 @@ main:
             li      $a1, 2
             li      $a2, 2
             jal     populate_list
+            move    $a0, $v0
+            jal     print_list
+
+            la      $a0, list_a                         # merge the lists
+            la      $a1, list_b                         # [1, 2, 3, 4, 5, 6, 7, 8]
+            jal     merge
             move    $a0, $v0
             jal     print_list
  
@@ -119,7 +125,23 @@ end_print_list_loop:
             jr      $ra
 ########### end print_list
 
+########### merge
+# a0: &list_a
+# a1: &list_b
+# clobbers
+merge:
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            addu    $fp, $sp, 32
+
+            move    $v0, $a0                            # placeholder return &list_a
+
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32 
+            jr      $ra
+
+
             .data
-list_a:             .space 4
-list_b:             .space 4
-sorted:             .space 8
+list_a:             .space 16
+list_b:             .space 16
+sorted:             .space 32
