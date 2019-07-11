@@ -1,6 +1,6 @@
-# template.s
-# 
-# Does something interesting.
+# merge.s
+#
+# Receives 20 numbers and sorts them using merge sort.
 #
 # Registers used:
 # 
