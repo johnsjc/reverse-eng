@@ -11,9 +11,9 @@ main:
             sw      $fp, 24($sp)
             addu    $fp, $sp, 32
 
-            la      $a0, list_a                         # first argument: &list_a
+            la      $a0, list_a                         # first argument:  &list_a
             li      $a1, 1                              # second argument: start_value
-            li      $a2, 2                              # third arument: step
+            li      $a2, 2                              # third arument:   step
             jal     populate_list                       # list_a = [1, 3, 5, 7]
             move    $a0, $v0
             jal     print_list
@@ -35,7 +35,10 @@ exit:
             jr      $ra
 
 ########### populate_list
-# t0, t1, t2, t3
+# a0: &list
+# a1: start_value
+# a2: step
+# clobbers t0, t1, t2, t3
 populate_list:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
@@ -43,9 +46,9 @@ populate_list:
             addu    $fp, $sp, 32
 
             li      $t0, 0                              # i = 0
-            move    $t1, $a0                            # first parameter: &list
+            move    $t1, $a0                            # first parameter:  &list
             move    $t2, $a1                            # second parameter: start_value
-            move    $t3, $a2                            # third parameter: step
+            move    $t3, $a2                            # third parameter:  step
 
             move    $v0, $a0                            # return &list
 
@@ -67,14 +70,15 @@ end_populate_list_loop:
 ########### end populate_list            
 
 ########### print_list
-# t0, t1
+# a0 : &list
+# clobbers t0, t1
 print_list:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             addu    $fp, $sp, 32
             
             li      $t0, 0                              # i = 0
-            move    $t1, $a0                            # list_ptr
+            move    $t1, $a0                            # first argument: &list
 
             li      $a0, 0x5b                           # print "["
             li      $v0, 11
@@ -97,7 +101,7 @@ print_list_loop:
             syscall           
 
 print_list_last_element:            
-            addu    $t1, $t1, 4                         # list_ptr++
+            addu    $t1, $t1, 4                         # list++
             add     $t0, $t0, 1                         # i++
             b       print_list_loop
 
