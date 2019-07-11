@@ -45,10 +45,6 @@ fib_recurse:
 
 
 main:
-            la      $a0, prompt_msg             # "Compute fib(n) for: "
-            li      $v0, 4
-            syscall
-
             li      $v0, 5                      # Read the number
             syscall
 
@@ -59,14 +55,10 @@ main:
             li      $v0, 1
             syscall
 
-            li      $a0, 0xA                    # Print a newline
+            li      $a0, 0xA                    
             li      $v0, 11
             syscall
 
-exit:                                           # Terminate execution
+exit:                                           
             li      $v0, 10
             syscall
-
-
-            .data
-prompt_msg:             .asciiz "Compute fib(n) for: "

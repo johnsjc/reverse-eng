@@ -39,10 +39,6 @@ epilogue:
 
 
 main:
-            la      $a0, prompt_msg             # print "Compute fib(n) for: "
-            li      $v0, 4
-            syscall
-
             li      $v0, 5                      # read n
             syscall
 
@@ -58,10 +54,6 @@ main:
             li      $v0, 11
             syscall
 
-exit:                                           # terminate execution
+exit:       
             li      $v0, 10
             syscall
-
-
-            .data
-prompt_msg:             .asciiz "Compute fib(n) for: "

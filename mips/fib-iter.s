@@ -42,9 +42,6 @@ epilogue:
 
             .text
 main:
-            la      $a0, prompt_msg     # Prompt for n
-            li      $v0, 4
-            syscall
             li      $v0, 5              # v0 = n
             syscall
             move    $a0, $v0            # v0 = fib(n)
@@ -59,7 +56,3 @@ main:
 exit:
             li      $v0, 10
             syscall
-
-
-            .data
-prompt_msg:                .asciiz "Compute fib(n) for: "
