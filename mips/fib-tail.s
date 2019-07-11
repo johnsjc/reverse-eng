@@ -4,7 +4,7 @@
 # Uses tail recursion.
 #
 # Registers used:
-#   a0, a1, a2  :   function arguments
+#   a0, a1, a2  :   function arguments a0 = n
 #   v0          :   function return value / syscall argument
 #   t0          :   temp storage
 #
