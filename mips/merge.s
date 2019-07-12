@@ -4,6 +4,30 @@
 # Uses merge sort.
 # echo 20 > nums; for i in {1..20}; do echo $i; done | sort -R >> nums; cat nums | spim -file merge.s; rm nums
 #
+#20         : number of ints to follow
+#14         : ints that make up the list
+#10
+#19
+#8
+#4
+#15
+#20
+#13
+#17
+#2
+#11
+#3
+#1
+#12
+#6
+#5
+#18
+#7
+#16
+#9
+#
+# creates array [14, 10, 19, 8, 4, 15, 20, 13, 17, 2, 11, 3, 1, 12, 6, 5, 18, 7, 16, 9]
+#
 
             .text
 main: 
