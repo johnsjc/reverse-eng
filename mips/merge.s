@@ -12,7 +12,7 @@ main:
             addu    $fp, $sp, 32
 
             la      $a0, list_a                         # first argument:  &list_a
-            li      $a1, 7                              # second argument: start_value
+            li      $a1, 1                              # second argument: start_value
             li      $a2, 2                              # third arument:   step
             jal     populate_list                       # list_a = [1, 3, 5, 7]
             move    $a0, $v0
@@ -75,14 +75,43 @@ end_populate_list_loop:
             jr      $ra
 ########### end populate_list            
 
-########### print_list
+########### list_length
 # a0 : &list
-# clobbers t0, t1
-print_list:
+# clobbers t0, t1, t2, t3
+list_length:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             addu    $fp, $sp, 32
-            
+
+            move    $t1, $a0                                # $t1 = &list
+            li      $t0, 0                                  # i = 0
+list_length_loop:
+            lw      $t3, ($t1)                              # $t0 = list[i]
+
+            beq     $t3, 0xFFFFFFFF, end_list_length_loop   # end if sentinel byte
+            add     $t1, $t1, 4                             # list++
+            add     $t0, $t0, 1                             # i++
+            b       list_length_loop
+end_list_length_loop:
+            move    $v0, $t0                                # return i
+
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32
+            jr      $ra 
+########### end list_length
+
+########### print_list
+# a0 : &list
+# clobbers t0, t1, t2, t3
+print_list:
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            sw      $ra, 24($sp)
+            addu    $fp, $sp, 32
+
+            jal     list_length                         # $t2 = length
+            move    $t2, $v0
+
             li      $t0, 0                              # i = 0
             move    $t1, $a0                            # first argument: &list
 
@@ -91,13 +120,14 @@ print_list:
             syscall
             
 print_list_loop:
-            beq     $t0, 4, end_print_list_loop
+            beq     $t0, $t2, end_print_list_loop
 
             lw      $a0, ($t1)                          # print list[i]
             li      $v0, 1
             syscall
 
-            beq     $t0, 3, print_list_last_element     # don't print ", " if the last element
+            sub     $t3, $t2, 1                         # t3 = length - 1
+            beq     $t0, $t3, print_list_last_element   # don't print ", " if the last element
             li      $a0, 0x2c                           # print ","
             li      $v0, 11
             syscall
@@ -119,7 +149,8 @@ end_print_list_loop:
             li      $a0, 0x0A
             li      $v0, 11
             syscall
-             
+            
+            lw      $ra, 24($sp)
             lw      $fp, 28($sp)
             addu    $sp, $sp, 32
             jr      $ra
@@ -129,10 +160,15 @@ end_print_list_loop:
 # a0: &list_a
 # a1: &list_b
 # clobbers
+# $t0 &list_a
+# $t1 &list_b
+# 
 merge:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             addu    $fp, $sp, 32
+
+             
 
             move    $v0, $a0                            # placeholder return &list_a
 
@@ -143,5 +179,8 @@ merge:
 
             .data
 list_a:             .space 16
+                    .word 0xFFFFFFFF
 list_b:             .space 16
+                    .word 0xFFFFFFFF
 sorted:             .space 32
+                    .word 0xFFFFFFFF
