@@ -159,19 +159,52 @@ end_print_list_loop:
 ########### merge
 # a0: &list_a
 # a1: &list_b
-# clobbers
+# clobbers t0, t1, t2, t3
 # $t0 &list_a
 # $t1 &list_b
 # 
 merge:
+
+merge_prologue:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
+            sw      $ra, 24($sp)
             addu    $fp, $sp, 32
 
-             
+merge_init:
+            move    $t0, $a0                                # &list_a
+            move    $t1, $a1                                # &list_b
+            li      $t2, 0                                  # i = 0 (list_a index)
+            li      $t3, 0                                  # j = 0 (list_b index)
 
-            move    $v0, $a0                            # placeholder return &list_a
+            sw      $t0, 20($sp)                            # save values from being clobbered
+            sw      $t1, 16($sp)                            # list_length uses t0, t1, t2
+            sw      $t2, 12($sp)
+            
+            jal     list_length                             # len(list_a)
+            move    $t4, $v0
 
+            move    $a0, $a1                                # len(list_b)
+            jal     list_length
+            move    $t5, $v0
+
+            lw      $t2, 12($sp)                            # restore values from stack
+            lw      $t1, 16($sp)
+            lw      $t0, 20($sp)
+
+            # t0 = $list_a
+            # t1 = $list_b
+            # t2 = 0 (i)
+            # t3 = 0 (j)
+            # t4 = len(list_a)
+            # t5 = len(list_b)
+            # t6 and t7 will be temp variables
+
+            move    $v0, $t0                                # placeholder return &list_a 
+            
+            
+merge_epilogue:
+            lw      $ra, 24($sp)
             lw      $fp, 28($sp)
             addu    $sp, $sp, 32 
             jr      $ra
