@@ -5,12 +5,53 @@
 #
 
             .text
-main:   
+main: 
 
+main_prologue:
             subu    $sp, $sp, 32
             sw      $ra, 28($sp)
             sw      $fp, 24($sp)
             addu    $fp, $sp, 32
+
+main_init:
+
+get_size:
+            li      $v0, 5
+            syscall
+            move    $t0, $v0        # t0 is number of ints
+
+            move    $t1, $t0        # t1 is size in bytes
+            add     $t1, $t1, 1     # add terminator
+            mul     $t1, $t1, 4     # Allocate memory with sbrk
+            move    $a0, $t1
+            li      $v0, 9
+            syscall
+            move    $t2, $v0        # t2 is &sorted
+
+            li      $t3, 0          # i = 0
+
+
+get_list:
+            beq     $t3, $t0, end_get_list
+            li      $v0, 5
+            syscall
+            sw      $v0, ($t2)
+            addu    $t2, $t2, 4
+            add     $t3, $t3, 1
+            b       get_list                   
+
+end_get_list:
+            li      $t0, 0xFFFFFFFF # terminate the list
+            sw      $t0, ($t2)
+            addu    $t2, $t2, 4
+            
+            subu    $t2, $t2, $t1   # move &sorted ptr to start of array
+            move    $a0, $t2
+            jal     print_list
+            jal     sort
+
+            # To do: Implement merge sort
+            # Divide array in halves, etc.
 
             li      $a0, 24                             # Allocate 24 bytes on the heap
             li      $v0, 9                              # for list_a (5 ints + terminator)
@@ -324,3 +365,23 @@ merge_epilogue:
             addu    $sp, $sp, 36 
             jr      $ra
 ########### end merge
+
+########### sort
+# a0: &unsorted
+# clobbers
+sort:       
+sort_prologue:
+            subu    $sp, $sp, 32
+            sw      $ra, 28($sp)
+            sw      $fp, 24($sp)
+            addu    $fp, $sp, 32
+
+            move    $v0, $a0
+
+sort_epilogue:
+            lw      $fp, 24($sp)
+            lw      $ra, 28($sp)
+            addu    $sp, $sp, 32
+            jr      $ra
+
+########### end sort
