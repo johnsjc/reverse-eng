@@ -2,6 +2,7 @@
 #
 # Receives a list of numbers and sorts them.
 # Uses merge sort.
+# echo 20 > nums; for i in {1..20}; do echo $i; done | sort -R >> nums; cat nums | spim -file merge.s; rm nums
 #
 
             .text
