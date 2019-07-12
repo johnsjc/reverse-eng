@@ -77,7 +77,7 @@ end_populate_list_loop:
 
 ########### list_length
 # a0 : &list
-# clobbers t0, t1, t2, t3
+# clobbers t0, t1, t2
 list_length:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
@@ -86,9 +86,9 @@ list_length:
             move    $t1, $a0                                # $t1 = &list
             li      $t0, 0                                  # i = 0
 list_length_loop:
-            lw      $t3, ($t1)                              # $t0 = list[i]
+            lw      $t2, ($t1)                              # $t0 = list[i]
 
-            beq     $t3, 0xFFFFFFFF, end_list_length_loop   # end if sentinel byte
+            beq     $t2, 0xFFFFFFFF, end_list_length_loop   # end if sentinel byte
             add     $t1, $t1, 4                             # list++
             add     $t0, $t0, 1                             # i++
             b       list_length_loop
