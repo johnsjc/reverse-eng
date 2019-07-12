@@ -15,11 +15,11 @@ main:
             li      $a1, 0                              # second argument: start_value
             li      $a2, 3                              # third argument:  step
             li      $a3, 5                              # fourth argument: length
-            jal     populate_list                       # list_a = [1, 3, 5, 7]
+            jal     populate_list                       # list_a = [0, 3, 6, 9, 12]
             move    $a0, $v0
             jal     print_list
 
-            la      $a0, list_b                         # list_b = [2, 4, 6, 8]
+            la      $a0, list_b                         # list_b = [3, 5, 7]
             li      $a1, 3
             li      $a2, 2
             li      $a3, 3
@@ -28,7 +28,7 @@ main:
             jal     print_list
 
             la      $a0, list_a                         # merge the lists
-            la      $a1, list_b                         # [1, 2, 3, 4, 5, 6, 7, 8]
+            la      $a1, list_b                         # [0, 3, 3, 5, 6, 7, 9, 12]
             jal     merge
             move    $a0, $v0
             jal     print_list
