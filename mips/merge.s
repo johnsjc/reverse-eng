@@ -1,6 +1,7 @@
 # merge.s
 #
-# Receives 20 numbers and sorts them using merge sort.
+# Receives a list of numbers and sorts them.
+# Uses merge sort.
 #
 
             .text
@@ -11,25 +12,37 @@ main:
             sw      $fp, 24($sp)
             addu    $fp, $sp, 32
 
-            la      $a0, list_a                         # first argument:  &list_a
+            li      $a0, 24                             # Allocate 24 bytes on the heap
+            li      $v0, 9                              # for list_a (5 ints + terminator)
+            syscall             
+            sw      $v0, 20($sp)                        # local list_a
+
+            li      $a0, 16                             # Allocate 16 bytes on the heap
+            li      $v0, 9                              # for list_b (3 ints + terminator)
+            syscall
+            sw      $v0, 16($sp)                        # local list_b
+
+            lw      $a0, 20($sp)                        # first argument:  &list_a
             li      $a1, 0                              # second argument: start_value
             li      $a2, 3                              # third argument:  step
-            li      $a3, 5                              # fourth argument: length
+            li      $a3, 5
             jal     populate_list                       # list_a = [0, 3, 6, 9, 12]
             move    $a0, $v0
             jal     print_list
 
-            la      $a0, list_b                         # list_b = [3, 5, 7]
+            lw      $a0, 16($sp)                        # list_b = [3, 5, 7]
             li      $a1, 3
-            li      $a2, 2
+            li      $a2, 2            
             li      $a3, 3
             jal     populate_list
             move    $a0, $v0
             jal     print_list
 
-            la      $a0, list_a                         # merge the lists
-            la      $a1, list_b                         # [0, 3, 3, 5, 6, 7, 9, 12]
+            lw      $a0, 20($sp)                        # merge the lists
+            lw      $a1, 16($sp)                        # [0, 3, 3, 5, 6, 7, 9, 12]
             jal     merge
+
+            sw      $v0, 12($sp)                        # local merge
             move    $a0, $v0
             jal     print_list
  
@@ -47,7 +60,7 @@ exit:
 # a1: start_value
 # a2: step
 # a3: length
-# clobbers t0, t1, t2, t3, t4
+# clobbers t0, t1, t2, t3
 populate_list:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
@@ -71,13 +84,17 @@ populate_list_loop:
             addu    $t1, $t1, 4                         # list++
             add     $t0, $t0, 1                         # i++
             b       populate_list_loop
-            
+             
 end_populate_list_loop:
+            li      $t9, 0xFFFFFFFF
+            sw      $t9, ($t1)                         # add terminator
+            
             lw      $ra, 24($sp)
             lw      $fp, 28($ra)
             addu    $sp, $sp, 32
             jr      $ra
 ########### end populate_list            
+
 
 ########### list_length
 # a0 : &list
@@ -104,6 +121,7 @@ end_list_length_loop:
             jr      $ra 
 ########### end list_length
 
+
 ########### print_list
 # a0 : &list
 # clobbers t0, t1, t2, t3
@@ -113,7 +131,7 @@ print_list:
             sw      $ra, 24($sp)
             addu    $fp, $sp, 32
 
-            jal     list_length                         # $t2 = length
+            jal     list_length                         # $t2 = length            
             move    $t2, $v0
 
             li      $t0, 0                              # i = 0
@@ -160,6 +178,7 @@ end_print_list_loop:
             jr      $ra
 ########### end print_list
 
+
 ########### merge
 # a0: &list_a
 # a1: &list_b
@@ -178,23 +197,27 @@ merge_init:
 
             jal     list_length
             sw      $v0, 16($sp)                            # local len(list_a)
+            move    $t9, $v0                                # $t9 is merged length
             
             move    $a0, $a1
             jal     list_length                             # local len(list_b)
             sw      $v0, 12($sp)
-
-            la      $t9, sorted                             # local &sorted
-            sw      $t9, 8($sp)
+            add     $t9, $t9, $v0                           # increment $t9 by len(b)
 
             li      $t0, 0                                  # i = 0 (list_a index)
             li      $t1, 0                                  # j = 0 (list_b index)
 
-            lw      $v0, 8($sp)                             # return sorted
+            mul     $t9, $t9, 4                             # multiply by 4 to get bytes
+            add     $t9, $t9, 4                             # allocate space for terminator
+            move    $a0, $t9                                # call sbrk
+            li      $v0, 9
+            syscall
+            sw      $v0, 8($sp)                             # return &sorted
 
             # 24(sp) = &list_a
             # 20(sp) = &list_b
             # 16(sp) = len(list_a)
-            # 12(sp)  = len(list_b)
+            # 12(sp) = len(list_b)
             # 8(sp)  = &sorted
             # t0 = list_a index (i)
             # t1 = list_b index (j)
@@ -290,18 +313,14 @@ merge_copy_b_to_a:
             
             b       merge_copy_b_to_a
 
-merge_loop_end:            
+merge_loop_end:
+            li      $t0, 0xFFFFFFFF                         # add a terminator
+            lw      $t9, 8($sp)
+            sw      $t0, ($t9)
+            
 merge_epilogue:
             lw      $ra, 28($sp)
             lw      $fp, 32($sp)
             addu    $sp, $sp, 36 
             jr      $ra
 ########### end merge
-
-            .data
-list_a:             .space 20
-                    .word 0xFFFFFFFF
-list_b:             .space 12
-                    .word 0xFFFFFFFF
-sorted:             .space 32
-                    .word 0xFFFFFFFF
