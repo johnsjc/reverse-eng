@@ -161,6 +161,8 @@ end_print_list_loop:
 ########### end print_list
 
 ########### merge
+# a0: &list_a
+# a1: &list_b
 # clobbers t0, t1, t2, t3, and t9
 merge:
 
@@ -294,7 +296,7 @@ merge_epilogue:
             lw      $fp, 32($sp)
             addu    $sp, $sp, 36 
             jr      $ra
-
+########### end merge
 
             .data
 list_a:             .space 20
