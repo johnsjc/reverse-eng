@@ -204,7 +204,7 @@ merge_loop:
                                                             # if list_a exhausted
             lw      $t9, 12($sp)
             beq     $t1, $t9, merge_copy_a_to_b             # copy rest of list_a            
-
+                                                            # if list_b exhausted
 merge_compare:
             lw      $t9, 24($sp)                            # t2 = list_a[i]          
             lw      $t2, ($t9)
@@ -288,8 +288,7 @@ merge_copy_b_to_a:
             
             b       merge_copy_b_to_a
 
-merge_loop_end:
-                                                           # if list_b exhausted            
+merge_loop_end:            
 merge_epilogue:
             lw      $ra, 28($sp)
             lw      $fp, 32($sp)
