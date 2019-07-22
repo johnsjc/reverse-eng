@@ -2,32 +2,33 @@
 #
 # Receives a list of numbers and sorts them.
 # Uses merge sort.
-# echo 20 > nums; for i in {1..20}; do echo $i; done | sort -R >> nums; cat nums | spim -file merge.s; rm nums
+# Usage: ./merge.sh <n>
 #
-#20         : number of ints to follow
-#14         : ints that make up the list
-#10
-#19
-#8
-#4
-#15
-#20
-#13
-#17
-#2
-#11
-#3
-#1
-#12
-#6
-#5
-#18
-#7
-#16
-#9
+# e.g. n = 5 
 #
-# creates array [14, 10, 19, 8, 4, 15, 20, 13, 17, 2, 11, 3, 1, 12, 6, 5, 18, 7, 16, 9]
+# 5         : number of ints to follow
+# 5         : ints that make up the list
+# 1
+# 3
+# 2
+# 4
 #
+# creates array [1, 2, 3, 4, 5]
+#
+            .data
+
+input_msg:          .asciiz "Input: "
+sorted_msg:         .asciiz "Sorted: "
+debug_1:            .asciiz "[DEBUG] List A: "
+debug_2:            .asciiz "[DEBUG] List B: "
+
+debug_sort:         .asciiz "[DEBUG] Sort: "
+debug_split:        .asciiz "[DEBUG] Split: "
+debug_split2:       .asciiz " | "
+debug_result:       .asciiz "[DEBUG] Result: "
+debug_left:         .asciiz "[DEBUG] Sorted left half: "
+debug_right:        .asciiz "[DEBUG] Sorted right half: "
+debug_merge:        .asciiz "[DEBUG] Merged result: "
 
             .text
 main: 
@@ -39,149 +40,99 @@ main_prologue:
             addu    $fp, $sp, 32
 
 main_init:
+            sw      $s0, 20($sp)
+            li      $s0, 0                                      # s0: debug flag (0 = true, 1 = false)
 
-get_size:
+# Get the size of the array to be sorted.
+# Given by the first line in the input.
+main_get_input_size:
             li      $v0, 5
             syscall
-            move    $t0, $v0        # t0 is number of ints
+            move    $t0, $v0                                    # t0: number of ints
 
-            move    $t1, $t0        # t1 is size in bytes
-            add     $t1, $t1, 1     # add terminator
-            mul     $t1, $t1, 4     # Allocate memory with sbrk
+main_create_array:
+            move    $t1, $t0                                    # t1: size in bytes
+            add     $t1, $t1, 1                                 # add space for terminator
+            mul     $t1, $t1, 4                                 # each int is 4 bytes
             move    $a0, $t1
             li      $v0, 9
-            syscall
-            move    $t2, $v0        # t2 is &sorted
+            syscall                                             # call sbrk
+            move    $t2, $v0                                    # t2: &sorted
+            sw      $t2, 16($sp)                                # save start of &sorted on the stack
 
-            li      $t3, 0          # i = 0
+# Read in the integers
+            li      $t3, 0                                      # i = 0
+main_read_ints:
+            beq     $t3, $t0, main_end_read_ints
+            li      $v0, 5                              
+            syscall                                             # call read_int
+            sw      $v0, ($t2)                                  # save the result in &sorted
+            addu    $t2, $t2, 4                                 # increment sorted pointer
+            add     $t3, $t3, 1                                 # i++
+            b       main_read_ints                   
 
-
-get_list:
-            beq     $t3, $t0, end_get_list
-            li      $v0, 5
-            syscall
-            sw      $v0, ($t2)
-            addu    $t2, $t2, 4
-            add     $t3, $t3, 1
-            b       get_list                   
-
-end_get_list:
-            li      $t0, 0xFFFFFFFF # terminate the list
+main_end_read_ints:
+            li      $t0, 0xFFFFFFFF                             # add terminator value
             sw      $t0, ($t2)
             addu    $t2, $t2, 4
-            
-            subu    $t2, $t2, $t1   # move &sorted ptr to start of array
-            move    $a0, $t2
-            jal     print_list
-            jal     sort
-            b exit
 
-            # To do: Implement merge sort
-            # Divide array in halves, etc.
-
-            li      $a0, 24                             # Allocate 24 bytes on the heap
-            li      $v0, 9                              # for list_a (5 ints + terminator)
-            syscall             
-            sw      $v0, 20($sp)                        # local list_a
-
-            li      $a0, 16                             # Allocate 16 bytes on the heap
-            li      $v0, 9                              # for list_b (3 ints + terminator)
+            la      $a0, input_msg                              # print "Input: "
+            li      $v0, 4
             syscall
-            sw      $v0, 16($sp)                        # local list_b
-
-            lw      $a0, 20($sp)                        # first argument:  &list_a
-            li      $a1, 0                              # second argument: start_value
-            li      $a2, 3                              # third argument:  step
-            li      $a3, 5
-            jal     populate_list                       # list_a = [0, 3, 6, 9, 12]
-            move    $a0, $v0
+            
+            lw      $a0, 16($sp)                                # print the unsorted list
             jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
 
-            lw      $a0, 16($sp)                        # list_b = [3, 5, 7]
-            li      $a1, 3
-            li      $a2, 2            
-            li      $a3, 3
-            jal     populate_list
-            move    $a0, $v0
+            lw      $a0, 16($sp)
+            li      $a1, 2                                      # indentation for debug
+            jal     sort                                        # sort the list
+            sw      $v0, 16($sp)
+
+            la      $a0, sorted_msg                             # print "Sorted: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 16($sp)                                # print the sorted list
             jal     print_list
-
-            lw      $a0, 20($sp)                        # merge the lists
-            lw      $a1, 16($sp)                        # [0, 3, 3, 5, 6, 7, 9, 12]
-            jal     merge
-
-            sw      $v0, 12($sp)                        # local merge
-            move    $a0, $v0
-            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
  
+# Exit the program
 exit:
             li      $v0, 10
             syscall
 
+            lw      $s0, 20($sp)
             lw      $fp, 24($sp)
             lw      $ra, 28($sp)
             addu    $sp, $sp, 32
             jr      $ra
 
-########### populate_list
-# a0: &list
-# a1: start_value
-# a2: step
-# a3: length
-# clobbers t0, t1, t2, t3
-populate_list:
-            subu    $sp, $sp, 32
-            sw      $fp, 28($sp)
-            sw      $ra, 24($sp)
-            addu    $fp, $sp, 32
-
-            li      $t0, 0                              # i = 0
-            move    $t1, $a0                            # first parameter:  &list
-            move    $t2, $a1                            # second parameter: start_value
-            move    $t3, $a2                            # third parameter:  step
-            move    $t4, $a3                            # fourth parameter: length
-
-            move    $v0, $a0                            # return &list
-
-populate_list_loop:
-            beq     $t0, $t4, end_populate_list_loop
-
-            sw      $t2, ($t1)                          # list[i] = value
-
-            add     $t2, $t2, $t3                       # value += step
-            addu    $t1, $t1, 4                         # list++
-            add     $t0, $t0, 1                         # i++
-            b       populate_list_loop
-             
-end_populate_list_loop:
-            li      $t9, 0xFFFFFFFF
-            sw      $t9, ($t1)                         # add terminator
-            
-            lw      $ra, 24($sp)
-            lw      $fp, 28($ra)
-            addu    $sp, $sp, 32
-            jr      $ra
-########### end populate_list            
-
 
 ########### list_length
 # a0 : &list
 # clobbers t0, t1, t2
+# Returns the length of the list in $v0
 list_length:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             addu    $fp, $sp, 32
 
-            move    $t1, $a0                                # $t1 = &list
-            li      $t0, 0                                  # i = 0
+            move    $t1, $a0                                    # t1: &list
+            li      $t0, 0                                      # i = 0
 list_length_loop:
-            lw      $t2, ($t1)                              # $t0 = list[i]
+            lw      $t2, ($t1)                                  # t2 = list[i]
 
-            beq     $t2, 0xFFFFFFFF, end_list_length_loop   # end if sentinel byte
-            add     $t1, $t1, 4                             # list++
-            add     $t0, $t0, 1                             # i++
+            beq     $t2, 0xFFFFFFFF, end_list_length_loop       # end if sentinel byte
+            add     $t1, $t1, 4                                 # list++
+            add     $t0, $t0, 1                                 # i++
             b       list_length_loop
 end_list_length_loop:
-            move    $v0, $t0                                # return i
+            move    $v0, $t0                                    # return i
 
             lw      $fp, 28($sp)
             addu    $sp, $sp, 32
@@ -192,54 +143,53 @@ end_list_length_loop:
 ########### print_list
 # a0 : &list
 # clobbers t0, t1, t2, t3
+# Pretty prints a list.
+# Returns the list in $v0.
 print_list:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             sw      $ra, 24($sp)
-            sw      $a0, 20($sp)
             addu    $fp, $sp, 32
 
-            jal     list_length                         # $t2 = length            
+            sw      $a0, 20($sp)                                # preserve the list
+
+            jal     list_length                                 # t2: list length            
             move    $t2, $v0
 
-            li      $t0, 0                              # i = 0
-            move    $t1, $a0                            # first argument: &list
+            li      $t0, 0                                      # i = 0
+            lw      $t1, 20($sp)                                # t1: &list
 
-            li      $a0, 0x5b                           # print "["
+            li      $a0, 0x5b                                   # print "["
             li      $v0, 11
             syscall
             
 print_list_loop:
             beq     $t0, $t2, end_print_list_loop
 
-            lw      $a0, ($t1)                          # print list[i]
+            lw      $a0, ($t1)                                  # print list[i]
             li      $v0, 1
             syscall
 
-            sub     $t3, $t2, 1                         # t3 = length - 1
-            beq     $t0, $t3, print_list_last_element   # don't print ", " if the last element
-            li      $a0, 0x2c                           # print ","
+            sub     $t3, $t2, 1                                 # t3: length - 1
+            beq     $t0, $t3, print_list_skip_comma             # don't print ", " if the last element
+            li      $a0, 0x2c                                   # print ","
             li      $v0, 11
             syscall
 
-            li      $a0, 0x20                           # print " "
+            li      $a0, 0x20                                   # print " "
             li      $v0, 11
             syscall           
 
-print_list_last_element:            
-            addu    $t1, $t1, 4                         # list++
-            add     $t0, $t0, 1                         # i++
+print_list_skip_comma:            
+            addu    $t1, $t1, 4                                 # list++
+            add     $t0, $t0, 1                                 # i++
             b       print_list_loop
 
 end_print_list_loop:         
-            li      $a0, 0x5d                           # print "]"
+            li      $a0, 0x5d                                   # print "]"
             li      $v0, 11
             syscall
              
-            li      $a0, 0x0A
-            li      $v0, 11
-            syscall
-            
             lw      $a0, 20($sp)
             lw      $ra, 24($sp)
             lw      $fp, 28($sp)
@@ -247,11 +197,36 @@ end_print_list_loop:
             jr      $ra
 ########### end print_list
 
+########### print_tabs
+# a0 : number to print
+print_tabs:
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            addu    $fp, $sp, 32
+
+            move    $t1, $a0
+            li      $t0, 0
+print_tabs_loop:
+            beq     $t0, $t1, end_print_tabs
+            li      $a0, 0x9
+            li      $v0, 11
+            syscall
+            add     $t0, $t0, 1
+            b       print_tabs_loop
+
+end_print_tabs:
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32
+            jr      $ra
+########### end print_tabs
+
 
 ########### merge
 # a0: &list_a
 # a1: &list_b
 # clobbers t0, t1, t2, t3, and t9
+# Merges two sorted lists, a and b into one list.
+# Returns the sorted list in $v0.
 merge:
 
 merge_prologue:
@@ -264,11 +239,14 @@ merge_init:
             sw      $a0, 24($sp)                            # local &list_a
             sw      $a1, 20($sp)                            # local &list_b
 
+            
+merge_init_1:
+            lw      $a0, 24($sp)
             jal     list_length
             sw      $v0, 16($sp)                            # local len(list_a)
             move    $t9, $v0                                # $t9 is merged length
             
-            move    $a0, $a1
+            lw      $a0, 20($sp)
             jal     list_length                             # local len(list_b)
             sw      $v0, 12($sp)
             add     $t9, $t9, $v0                           # increment $t9 by len(b)
@@ -388,6 +366,17 @@ merge_loop_end:
             sw      $t0, ($t9)
             
 merge_epilogue:
+
+            #move    $t0, $v0
+            #move    $a0, $t0
+            #jal     print_list
+    
+            #li      $a0, 0xA
+            #li      $v0, 11
+            #syscall
+
+            #move    $v0, $t0
+
             lw      $ra, 28($sp)
             lw      $fp, 32($sp)
             addu    $sp, $sp, 36 
@@ -396,6 +385,7 @@ merge_epilogue:
 
 ########### sort
 # a0: &unsorted
+# a1: counter for debug output
 # clobbers
 sort:       
 sort_prologue:
@@ -403,10 +393,133 @@ sort_prologue:
             sw      $ra, 28($sp)
             sw      $fp, 24($sp)
             sw      $a0, 20($sp)
+            sw      $a1, 4($sp)
             addu    $fp, $sp, 32
 
-            jal     split_list
+            beq     $s0, 1, sort_post_debug_1       # debug information
+            
+            lw      $a0, 4($sp)
+            jal     print_tabs
 
+            la      $a0, debug_sort
+            li      $v0, 4
+            syscall
+            lw      $a0, 20($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
+sort_post_debug_1:
+            lw      $a0, 20($sp)
+            jal     list_length                     # return if length = 1
+            beq     $v0, 1, sort_one_element
+
+            jal     split_list                      # v0 = &left, v1 = &right
+
+            sw      $v0, 16($sp)
+            sw      $v1, 12($sp)
+            
+            beq     $s0, 1, sort_post_debug_2       # debug info
+
+            lw      $a0, 4($sp)
+            jal     print_tabs
+
+            la      $a0, debug_split
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 16($sp)
+            jal     print_list
+            la      $a0, debug_split2
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 12($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
+
+sort_post_debug_2:
+            # sort recursively
+            lw      $a0, 16($sp)
+            jal     sort
+            sw      $v0, 16($sp)
+            lw      $a0, 12($sp)
+            jal     sort
+            sw      $v0, 12($sp)
+
+            beq     $s0, 1, sort_post_debug_3       # debug info
+
+            lw      $a0, 4($sp)
+            jal     print_tabs
+
+            la      $a0, debug_left
+            li      $v0, 4
+            syscall
+            lw      $a0, 16($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
+            lw      $a0, 4($sp)
+            jal     print_tabs
+
+            la      $a0, debug_right
+            li      $v0, 4
+            syscall
+            lw      $a0, 12($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
+sort_post_debug_3:            
+            # call merge on sorted lists
+            lw      $a0, 16($sp)
+            lw      $a1, 12($sp)
+            jal     merge
+        
+            beq     $s0, 1, sort_post_debug_4
+
+            sw      $v0, 8($sp)
+
+            lw      $a0, 4($sp)
+            jal     print_tabs
+
+            la      $a0, debug_merge
+            li      $v0, 4
+            syscall
+            lw      $a0, 8($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+            lw      $v0, 8($sp)
+
+sort_post_debug_4:
+            b       sort_epilogue
+
+sort_one_element:
+            beq     $s0, 1, sort_post_debug_5
+
+            lw      $a0, 4($sp)
+            jal     print_tabs
+
+            la      $a0, debug_result
+            li      $v0, 4
+            syscall
+            lw      $a0, 20($sp)
+            jal     print_list
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
+sort_post_debug_5:
+            lw      $v0, 20($sp)
 
 sort_epilogue:
             lw      $a0, 20($sp)
@@ -496,12 +609,6 @@ split_list_epilogue:
 
             lw      $v0, 16($sp)                        # return &left, &right
             lw      $v1, 12($sp)
-
-            move    $a0, $v0
-            jal     print_list
-            move    $a0, $v1
-            jal     print_list
-
 
             lw      $a0, 20($sp)                        # leave a0 unchanged
             
