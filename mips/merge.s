@@ -74,6 +74,7 @@ end_get_list:
             move    $a0, $t2
             jal     print_list
             jal     sort
+            b exit
 
             # To do: Implement merge sort
             # Divide array in halves, etc.
@@ -195,6 +196,7 @@ print_list:
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             sw      $ra, 24($sp)
+            sw      $a0, 20($sp)
             addu    $fp, $sp, 32
 
             jal     list_length                         # $t2 = length            
@@ -238,6 +240,7 @@ end_print_list_loop:
             li      $v0, 11
             syscall
             
+            lw      $a0, 20($sp)
             lw      $ra, 24($sp)
             lw      $fp, 28($sp)
             addu    $sp, $sp, 32
@@ -399,14 +402,112 @@ sort_prologue:
             subu    $sp, $sp, 32
             sw      $ra, 28($sp)
             sw      $fp, 24($sp)
+            sw      $a0, 20($sp)
             addu    $fp, $sp, 32
 
-            move    $v0, $a0
+            jal     split_list
+
 
 sort_epilogue:
+            lw      $a0, 20($sp)
             lw      $fp, 24($sp)
             lw      $ra, 28($sp)
             addu    $sp, $sp, 32
             jr      $ra
 
 ########### end sort
+
+########### split_list
+# a0: &list
+#
+# v0: &left
+# v1: &right
+#
+# clobbers t0-t7
+split_list:
+split_list_prologue:
+            subu    $sp, $sp, 32
+            sw      $ra, 28($sp)
+            sw      $fp, 24($sp)
+            sw      $a0, 20($sp)
+            addu    $fp, $sp, 32
+
+            jal     list_length                         # t0: length of &list
+            move    $t0, $v0
+            srl     $t1, $t0, 1                         # t1: half of t0 (truncated)
+
+create_left_list:
+            move    $t2, $t1                            # allocate bytes for left list
+            add     $t2, $t2, 1                         # add byte for terminator
+            mul     $t2, $t2, 4                         # t2: num_bytes
+
+            move    $a0, $t2                            # call sbrk
+            li      $v0, 9
+            syscall
+            move    $t3, $v0                            # t3: &left
+            sw      $v0, 16($sp)                        # save &left on the stack
+populate_left_list:
+            li      $t4, 0                              # i = 0
+            lw      $t5, 20($sp)                        # t5: &list
+populate_left_list_loop:
+            beq     $t4, $t1, end_populate_left_list
+
+            lw      $t6, ($t5)                          # copy value
+            sw      $t6, ($t3)
+            addu    $t5, $t5, 4                         # increment pointers and i
+            addu    $t3, $t3, 4
+            add     $t4, $t4, 1  
+            b       populate_left_list_loop
+
+end_populate_left_list:
+            li      $t7, 0xFFFFFFFF
+            sw      $t7, ($t3)
+            addu    $t3, $t3, 4
+
+create_right_list:
+            sub     $t1, $t0, $t1                       # t1: length of right
+            move    $t2, $t1                            # allocate bytes for right list
+            add     $t2, $t2, 1
+            mul     $t2, $t2, 4
+
+            move    $a0, $t2                            # call sbrk
+            li      $v0, 9
+            syscall
+
+            move    $t3, $v0                            # t3: &right
+            sw      $v0, 12($sp)                        # save &right on the stack
+populate_right_list:
+            li      $t4, 0                              # i = 0
+populate_right_list_loop:
+            beq     $t4, $t1, end_populate_right_list
+
+            lw      $t6, ($t5)
+            sw      $t6, ($t3)
+            addu    $t5, $t5, 4
+            addu    $t3, $t3, 4
+            add     $t4, $t4, 1
+            b       populate_right_list_loop
+end_populate_right_list:
+            li      $t7, 0xFFFFFFFF
+            sw      $t7, ($t3)
+            addu    $t3, $t3, 4
+            
+split_list_epilogue:
+
+            lw      $v0, 16($sp)                        # return &left, &right
+            lw      $v1, 12($sp)
+
+            move    $a0, $v0
+            jal     print_list
+            move    $a0, $v1
+            jal     print_list
+
+
+            lw      $a0, 20($sp)                        # leave a0 unchanged
+            
+            lw      $fp, 24($sp)
+            lw      $ra, 28($sp)
+            addu    $sp, $sp, 32
+            jr      $ra
+
+########### end split_list
