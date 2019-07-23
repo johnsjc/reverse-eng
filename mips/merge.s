@@ -22,7 +22,7 @@ sorted_msg:         .asciiz "Sorted: "
 
 debug_sort:         .asciiz "[DEBUG] Sort: "
 debug_split:        .asciiz "[DEBUG] Split: "
-debug_split_delim:       .asciiz " | "
+debug_split_delim:  .asciiz " | "
 debug_left:         .asciiz "[DEBUG] Sorted left half: "
 debug_right:        .asciiz "[DEBUG] Sorted right half: "
 debug_merge:        .asciiz "[DEBUG] Merged result: "
