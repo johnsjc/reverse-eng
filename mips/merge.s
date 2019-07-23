@@ -19,13 +19,10 @@
 
 input_msg:          .asciiz "Input: "
 sorted_msg:         .asciiz "Sorted: "
-debug_1:            .asciiz "[DEBUG] List A: "
-debug_2:            .asciiz "[DEBUG] List B: "
 
 debug_sort:         .asciiz "[DEBUG] Sort: "
 debug_split:        .asciiz "[DEBUG] Split: "
-debug_split2:       .asciiz " | "
-debug_result:       .asciiz "[DEBUG] Result: "
+debug_split_delim:       .asciiz " | "
 debug_left:         .asciiz "[DEBUG] Sorted left half: "
 debug_right:        .asciiz "[DEBUG] Sorted right half: "
 debug_merge:        .asciiz "[DEBUG] Merged result: "
@@ -87,7 +84,7 @@ main_end_read_ints:
             syscall
 
             lw      $a0, 16($sp)
-            li      $a1, 2                                      # indentation for debug
+            li      $a1, 0                                      # indentation for debug
             jal     sort                                        # sort the list
             sw      $v0, 16($sp)
 
@@ -431,7 +428,7 @@ sort_post_debug_1:
 
             lw      $a0, 16($sp)
             jal     print_list
-            la      $a0, debug_split2
+            la      $a0, debug_split_delim
             li      $v0, 4
             syscall
 
@@ -445,9 +442,13 @@ sort_post_debug_1:
 sort_post_debug_2:
             # sort recursively
             lw      $a0, 16($sp)
+            lw      $a1, 4($sp)
+            add     $a1, $a1, 1
             jal     sort
             sw      $v0, 16($sp)
             lw      $a0, 12($sp)
+            lw      $a1, 4($sp)
+            add     $a1, $a1, 1
             jal     sort
             sw      $v0, 12($sp)
 
@@ -504,21 +505,6 @@ sort_post_debug_4:
             b       sort_epilogue
 
 sort_one_element:
-            beq     $s0, 1, sort_post_debug_5
-
-            lw      $a0, 4($sp)
-            jal     print_tabs
-
-            la      $a0, debug_result
-            li      $v0, 4
-            syscall
-            lw      $a0, 20($sp)
-            jal     print_list
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
-
-sort_post_debug_5:
             lw      $v0, 20($sp)
 
 sort_epilogue:
