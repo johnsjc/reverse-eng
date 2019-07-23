@@ -40,22 +40,32 @@ main_init:
             sw      $s0, 20($sp)
             li      $s0, 0                                      # s0: debug flag (0 = true, 1 = false)
 
-# Get the size of the array to be sorted.
-# Given by the first line in the input.
-main_get_input_size:
-            li      $v0, 5
+# A list has the following structure:
+# typedef struct _list_t {
+#   int     n_elements;
+#   int[]   *elements; /* pointer to the elements */
+# } list_t;
+main_create_list:
+            li      $v0, 5                                      # read the first int in the input
             syscall
             move    $t0, $v0                                    # t0: number of ints
 
-main_create_array:
-            move    $t1, $t0                                    # t1: size in bytes
-            add     $t1, $t1, 1                                 # add space for terminator
-            mul     $t1, $t1, 4                                 # each int is 4 bytes
-            move    $a0, $t1
+            li      $a0, 8                                      # allocate 8 bytes for list structure
             li      $v0, 9
-            syscall                                             # call sbrk
-            move    $t2, $v0                                    # t2: &sorted
-            sw      $t2, 16($sp)                                # save start of &sorted on the stack
+            syscall
+            move    $t1, $v0                                    # t1: &list
+    
+            sw      $t0, 0($t1)                                 # first field: number of elements
+            
+            move    $t2, $t0                                    # t2: size in bytes
+            mul     $t2, $t2, 4                                 # each int is 4 bytes
+            move    $a0, $t2
+            li      $v0, 9
+            syscall                                             
+            move    $t2, $v0                                    # t2: pointer to elements 
+            sw      $v0, 4($t1)                                 # second field: pointer to elements
+
+            sw      $t1, 16($sp)                                # save the list to the stack
 
 # Read in the integers
             li      $t3, 0                                      # i = 0
@@ -69,10 +79,6 @@ main_read_ints:
             b       main_read_ints                   
 
 main_end_read_ints:
-            li      $t0, 0xFFFFFFFF                             # add terminator value
-            sw      $t0, ($t2)
-            addu    $t2, $t2, 4
-
             la      $a0, input_msg                              # print "Input: "
             li      $v0, 4
             syscall
@@ -110,33 +116,6 @@ exit:
             jr      $ra
 
 
-########### list_length
-# a0 : &list
-# clobbers t0, t1, t2
-# Returns the length of the list in $v0
-list_length:
-            subu    $sp, $sp, 32
-            sw      $fp, 28($sp)
-            addu    $fp, $sp, 32
-
-            move    $t1, $a0                                    # t1: &list
-            li      $t0, 0                                      # i = 0
-list_length_loop:
-            lw      $t2, ($t1)                                  # t2 = list[i]
-
-            beq     $t2, 0xFFFFFFFF, end_list_length_loop       # end if sentinel byte
-            add     $t1, $t1, 4                                 # list++
-            add     $t0, $t0, 1                                 # i++
-            b       list_length_loop
-end_list_length_loop:
-            move    $v0, $t0                                    # return i
-
-            lw      $fp, 28($sp)
-            addu    $sp, $sp, 32
-            jr      $ra 
-########### end list_length
-
-
 ########### print_list
 # a0 : &list
 # clobbers t0, t1, t2, t3
@@ -150,24 +129,22 @@ print_list:
 
             sw      $a0, 20($sp)                                # preserve the list
 
-            jal     list_length                                 # t2: list length            
-            move    $t2, $v0
-
             li      $t0, 0                                      # i = 0
-            lw      $t1, 20($sp)                                # t1: &list
+            lw      $t1, 0($a0)                                 # t1: list length
+            lw      $t2, 4($a0)                                 # t2: list elements
 
             li      $a0, 0x5b                                   # print "["
             li      $v0, 11
             syscall
             
 print_list_loop:
-            beq     $t0, $t2, end_print_list_loop
+            beq     $t0, $t1, end_print_list_loop
 
-            lw      $a0, ($t1)                                  # print list[i]
+            lw      $a0, ($t2)                                  # print list[i]
             li      $v0, 1
             syscall
 
-            sub     $t3, $t2, 1                                 # t3: length - 1
+            sub     $t3, $t1, 1                                 # t3: length - 1
             beq     $t0, $t3, print_list_skip_comma             # don't print ", " if the last element
             li      $a0, 0x2c                                   # print ","
             li      $v0, 11
@@ -178,7 +155,7 @@ print_list_loop:
             syscall           
 
 print_list_skip_comma:            
-            addu    $t1, $t1, 4                                 # list++
+            addu    $t2, $t2, 4                                 # list++
             add     $t0, $t0, 1                                 # i++
             b       print_list_loop
 
@@ -186,7 +163,8 @@ end_print_list_loop:
             li      $a0, 0x5d                                   # print "]"
             li      $v0, 11
             syscall
-             
+
+            lw      $v0, 20($sp)             
             lw      $a0, 20($sp)
             lw      $ra, 24($sp)
             lw      $fp, 28($sp)
@@ -218,167 +196,150 @@ end_print_tabs:
 ########### end print_tabs
 
 
-########### merge
-# a0: &list_a
-# a1: &list_b
-# clobbers t0, t1, t2, t3, and t9
-# Merges two sorted lists, a and b into one list.
-# Returns the sorted list in $v0.
-merge:
 
+###################################################
+merge:
+# Parameters:
+#       a0 : list &a {n_elements, *elements}
+#       a1 : list &b {n_elements, *elements}
+# 
+# Merges two *sorted* lists and returns the result.
+# Clobbers registers t0-t6
+#
+# Returns:
+#       v0 : list &merged {n_elements, *elements}
 merge_prologue:
-            subu    $sp, $sp, 36
-            sw      $fp, 32($sp)
-            sw      $ra, 28($sp)
-            addu    $fp, $sp, 36
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            sw      $ra, 24($sp)
+            addu    $fp, $sp, 32
 
 merge_init:
-            sw      $a0, 24($sp)                            # local &list_a
-            sw      $a1, 20($sp)                            # local &list_b
+            sw      $a0, 20($sp)                            # local list &a
+            sw      $a1, 16($sp)                            # local list &b
 
-            
-merge_init_1:
-            lw      $a0, 24($sp)
-            jal     list_length
-            sw      $v0, 16($sp)                            # local len(list_a)
-            move    $t9, $v0                                # $t9 is merged length
-            
-            lw      $a0, 20($sp)
-            jal     list_length                             # local len(list_b)
-            sw      $v0, 12($sp)
-            add     $t9, $t9, $v0                           # increment $t9 by len(b)
+            lw      $t0, 0($a0)                             # t0: a.n_elements
+            lw      $t1, 0($a1)                             # t1: b.n_elements
 
-            li      $t0, 0                                  # i = 0 (list_a index)
-            li      $t1, 0                                  # j = 0 (list_b index)
-
-            mul     $t9, $t9, 4                             # multiply by 4 to get bytes
-            add     $t9, $t9, 4                             # allocate space for terminator
-            move    $a0, $t9                                # call sbrk
+            li      $a0, 8                                  # allocate 8 bytes for merged list
             li      $v0, 9
             syscall
-            sw      $v0, 8($sp)                             # return &sorted
+            move    $t2, $v0                                # t2: list &merged
 
-            # 24(sp) = &list_a
-            # 20(sp) = &list_b
-            # 16(sp) = len(list_a)
-            # 12(sp) = len(list_b)
-            # 8(sp)  = &sorted
-            # t0 = list_a index (i)
-            # t1 = list_b index (j)
-            # t2 and t3 are list_a[i] and list_b[j]
+            add     $a0, $t0, $t1                           # a0: size of &merged
+            sw      $a0, 0($t2)                             # merged.n_elements
+
+            mul     $a0, $a0, 4                             # allocate space for elements in &merged
+            li      $v0, 9
+            syscall
+
+            sw      $v0, 4($t2)                             # merged.elements
+            sw      $t2, 12($sp)                            # local list &merged
+            
+            li      $t0, 0                                  # i = 0 (a index)
+            li      $t1, 0                                  # j = 0 (b index)
+            li      $t2, 0                                  # k = 0 (merged index)
 
 merge_loop:
-            lw      $t9, 16($sp)
-            beq     $t0, $t9, merge_copy_b_to_a             # copy rest of list_b
-                                                            # if list_a exhausted
-            lw      $t9, 12($sp)
-            beq     $t1, $t9, merge_copy_a_to_b             # copy rest of list_a            
-                                                            # if list_b exhausted
+            lw      $t3, 20($sp)                            # t3: a
+            lw      $t3, 0($t3)                             # t3: a.n_elements
+            beq     $t0, $t3, merge_copy_b_to_a             # copy rest of list b
+                                                            # if list a exhausted
+
+            lw      $t3, 16($sp)                            # t3: b
+            lw      $t3, 0($t3)                             # t3: b.n_elements
+            beq     $t1, $t3, merge_copy_a_to_b             # copy rest of list a           
+                                                            # if list b exhausted
+
 merge_compare:
-            lw      $t9, 24($sp)                            # t2 = list_a[i]          
-            lw      $t2, ($t9)
+            lw      $t3, 20($sp)                            # t3: a         
+            lw      $t3, 4($t3)                             # t3: a.elements
+            mul     $t4, $t0, 4                             # t4: offset i into a.elements
+            addu    $t3, $t3, $t4                           # t3: &a.elements[i]
+            lw      $t5, ($t3)                              # t5: *a.elements[i]
 
-            lw      $t9, 20($sp)                            # t3 = list_b[j]
-            lw      $t3, ($t9)
+            lw      $t3, 16($sp)                            # t3: b
+            lw      $t3, 4($t3)                             # t3: b.elements
+            mul     $t4, $t1, 4                             # t4: offset j into b.elements
+            addu    $t3, $t3, $t4                           # t3: &b.elements[j]
+            lw      $t6, ($t3)                              # t6: *b.elements[j]
+            
+            lw      $t3, 12($sp)                            # t3: merged
+            lw      $t3, 4($t3)                             # t3: merged.elements
 
-            bgt     $t2, $t3, list_b_smaller                
+            mul     $t4, $t2, 4                             # t4: offset k into merged.elements
+            addu    $t3, $t3, $t4                           # t3: &merged.elements[k]
+            
+            bgt     $t5, $t6, list_b_smaller              
+
 list_a_smaller:
-            lw      $t9, 8($sp)                             # sorted[k] = list_a[i]
-            sw      $t2, ($t9)
-
+            sw      $t5, ($t3)                              # merged.elements[k] = a.elements[i]
             add     $t0, $t0, 1                             # i++
-
-            lw      $t9, 24($sp)                            # list_a++    
-            addu    $t9, $t9, 4
-            sw      $t9, 24($sp)
-            
-            lw      $t9, 8($sp)
-            addu    $t9, $t9, 4                             # sorted++
-            sw      $t9, 8($sp)
-
+            add     $t2, $t2, 1                             # k++
             b       merge_loop
+
 list_b_smaller:
-            lw      $t9, 8($sp)                             # sorted[k] = list_b[j]
-            sw      $t3, ($t9)
-
+            sw      $t6, ($t3)                              # merged.elements[k] = b.elements[j]
             add     $t1, $t1, 1                             # j++
-
-            lw      $t9, 20($sp)                            # list_b++
-            addu    $t9, $t9, 4
-            sw      $t9, 20($sp)                         
-            
-            lw      $t9, 8($sp)
-            addu    $t9, $t9, 4                             # sorted++
-            sw      $t9, 8($sp)
-
+            add     $t2, $t2, 1                             # k++
             b       merge_loop
-
 
 merge_copy_a_to_b:
-            lw      $t9, 16($sp)
-            beq     $t0, $t9, merge_loop_end
+            lw      $t3, 20($sp)                            # t3: a
+            lw      $t3, 0($t3)                             # t3: a.n_elements
+            beq     $t0, $t3, merge_loop_end
             
-            lw      $t9, 24($sp)                            # t2 = list_a[i]
-            lw      $t2, ($t9)
+            lw      $t3, 20($sp)                            # t3: a
+            lw      $t3, 4($t3)                             # t3: a.elements
 
-            lw      $t9, 8($sp)                             # t9 = sorted[k]
-            sw      $t2, ($t9)                              # sorted[k] = list_a[i]
-            
+            mul     $t4, $t0, 4                             # t4: offset i into a.elements
+            addu    $t3, $t3, $t4                           # t3: a.elements[i]
+            lw      $t5, ($t3)                              # t5: *a.elements[i]
+
+            lw      $t3, 12($sp)                            # t3: merged
+            lw      $t3, 4($t3)                             # t3: merged.elements
+
+            mul     $t4, $t2, 4                             # t4: offset k into merged.elements
+            addu    $t3, $t3, $t4                           # t9: &merged.elements[k]
+            sw      $t5, ($t3)                              # merged.elements[k] = a.elements[i]
+
             add     $t0, $t0, 1                             # i++
-
-            lw      $t9, 24($sp)                            # list_a++
-            addu    $t9, $t9, 4
-            sw      $t9, 24($sp)
-
-            lw      $t9, 8($sp)                             # sorted++
-            addu    $t9, $t9, 4
-            sw      $t9, 8($sp)
+            add     $t2, $t2, 1                             # k++
 
             b       merge_copy_a_to_b
+
 merge_copy_b_to_a:
-            lw      $t9, 12($sp)                            
-            beq     $t1, $t9, merge_loop_end
-           
-            lw      $t9, 20($sp)                            # t3 = list_b[j]
-            lw      $t3, ($t9)
+            lw      $t3, 16($sp)                            # t3: b
+            lw      $t3, 0($t3)                             # t3: b.n_elements
+            beq     $t1, $t3, merge_loop_end
             
-            lw      $t9, 8($sp)                             # t9 = sorted[k]
-            sw      $t3, ($t9)                              # sorted[k] = list_b[j]
-           
-            add     $t1, $t1, 1
+            lw      $t3, 16($sp)                            # t3: b
+            lw      $t3, 4($t3)                             # t3: b.elements
 
-            lw      $t9, 20($sp)
-            addu    $t9, $t9, 4
-            sw      $t9, 20($sp)
+            mul     $t4, $t1, 4                             # t4: offset j into b.elements
+            addu    $t3, $t3, $t4                           # t3: &b.elements[i]
+            lw      $t6, ($t3)                              # t6: *b.elements[i]
 
-            lw      $t9, 8($sp)
-            addu    $t9, $t9, 4
-            sw      $t9, 8($sp)
-            
+            lw      $t3, 12($sp)                            # t3: merged
+            lw      $t3, 4($t3)                             # t3: merged.elements
+
+            mul     $t4, $t2, 4                             # t4: offset k into merged.elements
+            addu    $t3, $t3, $t4                           # t3: &merged.elements[k]
+            sw      $t6, ($t3)                              # merged.elements[k] = b.elements[j]
+
+            add     $t1, $t1, 1                             # j++
+            add     $t2, $t2, 1                             # k++
+
             b       merge_copy_b_to_a
 
 merge_loop_end:
-            li      $t0, 0xFFFFFFFF                         # add a terminator
-            lw      $t9, 8($sp)
-            sw      $t0, ($t9)
-            
+            lw      $v0, 12($sp)                            # return &merged
+
 merge_epilogue:
-
-            #move    $t0, $v0
-            #move    $a0, $t0
-            #jal     print_list
-    
-            #li      $a0, 0xA
-            #li      $v0, 11
-            #syscall
-
-            #move    $v0, $t0
-
-            lw      $ra, 28($sp)
-            lw      $fp, 32($sp)
-            addu    $sp, $sp, 36 
+            lw      $ra, 24($sp)
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32 
             jr      $ra
-########### end merge
 
 ########### sort
 # a0: &unsorted
@@ -408,14 +369,15 @@ sort_prologue:
             syscall
 
 sort_post_debug_1:
+            lw      $t0, 20($sp)                    # t0: length of list
+            lw      $t0, 0($t0)
+            beq     $t0, 1, sort_one_element        # return if length = 1
+
             lw      $a0, 20($sp)
-            jal     list_length                     # return if length = 1
-            beq     $v0, 1, sort_one_element
+            jal     split_list                      # split the list in half
 
-            jal     split_list                      # v0 = &left, v1 = &right
-
-            sw      $v0, 16($sp)
-            sw      $v1, 12($sp)
+            sw      $v0, 16($sp)                    # v0 = &left
+            sw      $v1, 12($sp)                    # v1 = &right
             
             beq     $s0, 1, sort_post_debug_2       # debug info
 
@@ -478,7 +440,7 @@ sort_post_debug_2:
             li      $v0, 11
             syscall
 
-sort_post_debug_3:            
+sort_post_debug_3:   
             # call merge on sorted lists
             lw      $a0, 16($sp)
             lw      $a1, 12($sp)
@@ -531,23 +493,30 @@ split_list_prologue:
             sw      $a0, 20($sp)
             addu    $fp, $sp, 32
 
-            jal     list_length                         # t0: length of &list
-            move    $t0, $v0
+            lw      $t0, 0($a0)                         # t0: length of &list
+            li      $v0, 1
             srl     $t1, $t0, 1                         # t1: half of t0 (truncated)
 
 create_left_list:
-            move    $t2, $t1                            # allocate bytes for left list
-            add     $t2, $t2, 1                         # add byte for terminator
-            mul     $t2, $t2, 4                         # t2: num_bytes
+            li      $a0, 8                              # allocate 8 bytes
+            li      $v0, 9                              
+            syscall
+            move    $t2, $v0                            # t2: left_list
+            sw      $t1, 0($t2)                         # left.n_elements = t1
 
-            move    $a0, $t2                            # call sbrk
+            move    $a0, $t1
+            mul     $a0, $a0, 4
             li      $v0, 9
             syscall
-            move    $t3, $v0                            # t3: &left
-            sw      $v0, 16($sp)                        # save &left on the stack
+            move    $t3, $v0
+            sw      $t3, 4($t2)                         # left.elements = v0
+            
+            sw      $t2, 16($sp)                        # save left on the stack
+
 populate_left_list:
             li      $t4, 0                              # i = 0
             lw      $t5, 20($sp)                        # t5: &list
+            lw      $t5, 4($t5)                         # t5: list.elements
 populate_left_list_loop:
             beq     $t4, $t1, end_populate_left_list
 
@@ -559,22 +528,23 @@ populate_left_list_loop:
             b       populate_left_list_loop
 
 end_populate_left_list:
-            li      $t7, 0xFFFFFFFF
-            sw      $t7, ($t3)
-            addu    $t3, $t3, 4
-
 create_right_list:
-            sub     $t1, $t0, $t1                       # t1: length of right
-            move    $t2, $t1                            # allocate bytes for right list
-            add     $t2, $t2, 1
-            mul     $t2, $t2, 4
+            sub     $t1, $t0, $t1                       # t1: len(right)
 
-            move    $a0, $t2                            # call sbrk
+            li      $a0, 8
             li      $v0, 9
             syscall
+            move    $t2, $v0
+            sw      $t1, 0($t2)
 
-            move    $t3, $v0                            # t3: &right
-            sw      $v0, 12($sp)                        # save &right on the stack
+            move    $a0, $t1
+            mul     $a0, $a0, 4
+            li      $v0, 9
+            syscall
+            move    $t3, $v0
+            sw      $t3, 4($t2)
+            sw      $t2, 12($sp)                        # save right on the stack
+
 populate_right_list:
             li      $t4, 0                              # i = 0
 populate_right_list_loop:
@@ -587,12 +557,7 @@ populate_right_list_loop:
             add     $t4, $t4, 1
             b       populate_right_list_loop
 end_populate_right_list:
-            li      $t7, 0xFFFFFFFF
-            sw      $t7, ($t3)
-            addu    $t3, $t3, 4
-            
 split_list_epilogue:
-
             lw      $v0, 16($sp)                        # return &left, &right
             lw      $v1, 12($sp)
 
