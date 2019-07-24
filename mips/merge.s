@@ -52,6 +52,7 @@ input_msg:          .asciiz "Input: "
 sorted_msg:         .asciiz "Sorted: "
 top_down_msg:       .asciiz "\nSorting using a top down (iterative) algorithm...\n"
 bottom_up_msg:      .asciiz "\nSorting using a bottom up (recursive) algorithm...\n"
+separator:          .asciiz "\n#################################\n"
 
 debug_sort:         .asciiz "[DEBUG] Sort: "
 debug_split:        .asciiz "[DEBUG] Split: "
@@ -120,6 +121,10 @@ main:
 
             sw      $t0, 4($sp)
 
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
             la      $a0, input_msg                              # print "Input: "
             li      $v0, 4
             syscall
@@ -133,17 +138,7 @@ main:
             lw      $a0, 16($sp)
             jal     sort                                        # sort the list
 
-            la      $a0, sorted_msg                             # print "Sorted: "
-            li      $v0, 4
-            syscall
 
-            lw      $a0, 16($sp)                                # print the sorted list
-            jal     print_list
-
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
- 
     exit:
             li      $v0, 10
             syscall
@@ -526,6 +521,10 @@ sort:
             li      $v0, 4
             syscall
 
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+
             li      $a1, 0                                  # recursion level
             li      $a2, 0                                  # start index
             move    $a3, $t1                                # end index
@@ -537,6 +536,21 @@ sort:
             lw      $t1, 0($sp)                            
             lw      $t2, 4($t1)                             # t2: tmp.elements
             lw      $t1, 0($t1)                             # t1: tmp.length
+    
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+ 
+            la      $a0, sorted_msg                         # print "Sorted: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 20($sp)                            # print the sorted list
+            jal     print_list
+
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
             
             clear_loop:                                     # clear tmp array
             
@@ -550,6 +564,10 @@ sort:
 
             end_clear_loop:
 
+            la      $a0, separator
+            li      $v0, 4
+            syscall
+
             la      $a0, top_down_msg                       # sort using iterative top-down algorithm
             li      $v0, 4
             syscall
@@ -560,6 +578,18 @@ sort:
             lw      $a0, 20($sp)
             jal     sort_top_down
 
+            la      $a0, sorted_msg                             # print "Sorted: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 20($sp)                                # print the sorted list
+            jal     print_list
+
+            li      $a0, 0xA
+            li      $v0, 11
+            syscall
+            syscall
+ 
     sort_epilogue:
 
             lw      $ra, 24($sp)
