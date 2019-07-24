@@ -107,6 +107,7 @@ main:
 
             lw      $a0, 16($sp)                                # print the sorted list
             jal     print_list
+
             li      $a0, 0xA
             li      $v0, 11
             syscall
@@ -211,7 +212,7 @@ print_list_range:
             syscall
 
             sub     $t3, $t1, 1                                 # t3: list.n_elements - 1
-            beq     $t0, $t3, print_list_range_skip_comma             # if the last element, skip the comma
+            beq     $t0, $t3, print_list_range_skip_comma       # if the last element, skip the comma
 
             li      $a0, 0x2c                                   # else print ","
             li      $v0, 11
@@ -301,6 +302,7 @@ merge:
 #       a1:     start index
 #       a2:     middle index
 #       a3:     end index
+#       stack:  tmp array
 # 
 # Returns:
 #       v0:     list &merged {n_elements, *elements}
@@ -318,24 +320,6 @@ merge:
             sw      $a1, 16($sp)                            # local int start
             sw      $a2, 12($sp)                            # local int middle
             sw      $a3, 8($sp)                             # local int end
-
-            lw      $t1, 8($sp)
-            lw      $t2, 16($sp)
-
-            lw      $t0, 20($sp)
-            lw      $t0, 0($t0)                             # t0: tmp.n_elements
-            li      $a0, 8                                  # allocate space for &tmp
-            li      $v0, 9
-            syscall
-            move    $t1, $v0                                # t1: &tmp
-            
-            mul     $a0, $t0, 4                             # allocate space for tmp.elements
-            li      $v0, 9
-            syscall
-            
-            sw      $t0, 0($t1)                             # { n_elements, _ }
-            sw      $v0, 4($t1)                             # { _, *elements }
-            sw      $t1, 4($sp)                             # local list &tmp
 
             lw      $t0, 16($sp)                            # i = start (left index)
             lw      $t1, 12($sp)                            # j = middle (right index)
@@ -363,7 +347,7 @@ merge:
             addu    $t3, $t3, $t4                           # t3: &unsorted.elements[j]
             lw      $t6, ($t3)                              # t5: *unsorted.elements[j]
 
-            lw      $t3, 4($sp)                             # t3: tmp
+            lw      $t3, 32($sp)                            # t3: tmp
             lw      $t3, 4($t3)                             # t3: tmp.elements
             mul     $t4, $t2, 4                             # t4: offset k into tmp.elements
             addu    $t3, $t3, $t4                           # t3: &tmp.elements[k]
@@ -399,7 +383,7 @@ merge:
             addu    $t3, $t3, $t4                           # t3: &unsorted.elements[i]
             lw      $t5, ($t3)                              # t5: *unsorted.elements[i]
             
-            lw      $t3, 4($sp)                             # t3: tmp
+            lw      $t3, 32($sp)                            # t3: tmp
             lw      $t3, 4($t3)                             # t3: tmp.elements
 
             mul     $t4, $t2, 4                             # t4: offset k into tmp.elements
@@ -422,7 +406,7 @@ merge:
             addu    $t3, $t3, $t4                           # t3: &unsorted.elements[i]
             lw      $t6, ($t3)                              # t6: *unsorted.elements[i]
 
-            lw      $t3, 4($sp)                             # t3: tmp
+            lw      $t3, 32($sp)                            # t3: tmp
             lw      $t3, 4($t3)                             # t3: tmp.elements
 
             mul     $t4, $t2, 4                             # t4: offset k into tmp.elements
@@ -444,7 +428,7 @@ merge:
 
                 beq     $t0, $t1, merge_copy_loop_end
                 
-                lw      $t2, 4($sp)                         # t2: tmp
+                lw      $t2, 32($sp)                        # t2: tmp
                 lw      $t2, 4($t2)                         # t2: tmp.elements
                 mul     $t3, $t0, 4                         # t3: offset i
                 addu    $t2, $t2, $t3                       # t2: &tmp.elements[i]
@@ -488,9 +472,28 @@ sort:
 
     sort_init:
 
+            sw      $a0, 20($sp)                            # local &unsorted
+
+            li      $a0, 8                                  # allocate space for &tmp
+            li      $v0, 9
+            syscall
+            move    $t0, $v0                                # t0: &tmp
+            sw      $v0, 16($sp)                            # local &tmp
+
+            lw      $t1, 20($sp)                            # t1: tmp.n_elements
+            lw      $t1, 0($t1)
+            sw      $t1, 0($t0)                             # { n_elements, _ }
+
+            mul     $a0, $t1, 4                             # allocate space for tmp.elements
+            li      $v0, 9
+            syscall
+            sw      $v0, 4($t0)                             # { _, *elements }
+
+            lw      $a0, 20($sp)                            # &unsorted
             li      $a1, 0                                  # recursion level
             li      $a2, 0                                  # start index
-            lw      $a3, 0($a0)                             # end index
+            move    $a3, $t1                                # end index
+            sw      $t0, 0($sp)                             # tmp array on stack
             jal     sort_range
 
     sort_epilogue:
@@ -510,6 +513,7 @@ sort_range:
 #       a1:     int recursion_level (used for debug output)
 #       a2:     int start_index
 #       a3:     int end_index
+#       stack:  tmp array
 #
 # Returns:
 #       v0:     list $sorted {n_elements, *elements}        
@@ -527,7 +531,7 @@ sort_range:
             sw      $a1, 24($sp)                    # local int recursion_level
             sw      $a2, 20($sp)                    # local int start_index
             sw      $a3, 16($sp)                    # local int end_index
-
+                
     ###############################################
     # DEBUG
             beq     $s0, 1, sort_range_post_debug_1 # skip if flag not set     
@@ -539,9 +543,10 @@ sort_range:
             li      $v0, 4
             syscall
 
-            lw      $a0, 28($sp)                    # a0: local &unsorted
+            lw      $a0, 28($sp)                    # a0: local &unsorted            
             lw      $a1, 20($sp)
             lw      $a2, 16($sp)
+
             jal     print_list_range                # call print_list(&unsorted)
 
             li      $a0, 0xA                        # print a newline
@@ -559,7 +564,7 @@ sort_range:
 
             add     $t0, $t1, $t2                   # middle = (start + end) / 2 (truncated)
             srl     $t0, $t0, 1
-            sw      $t0, 12($sp)                   # local int middle_index
+            sw      $t0, 12($sp)                    # local int middle_index
 
     ###############################################
     # DEBUG
@@ -598,7 +603,10 @@ sort_range:
             lw      $a1, 24($sp)                    # a1: recursion_level
             add     $a1, $a1, 1
             lw      $a2, 20($sp)                    # a2: start
-            lw      $a3, 12($sp)                    # a3: middle
+            lw      $a3, 12($sp)                    # a3: middle     
+
+            lw      $t0, 40($sp)
+            sw      $t0, 0($sp)                     # tmp array
 
             jal     sort_range                      # call sort_range(unsorted, start, middle)
             
@@ -608,8 +616,11 @@ sort_range:
             lw      $a2, 12($sp)
             lw      $a3, 16($sp)
 
-            jal     sort_range                      # call sort_range(unsorted, middle, end)
+            lw      $t0, 40($sp)                    # tmp array
+            sw      $t0, 0($sp)
 
+            jal     sort_range                      # call sort_range(unsorted, middle, end)
+    
     ###############################################
     # DEBUG
             beq     $s0, 1, sort_range_post_debug_3 # skip if flag not set
@@ -652,6 +663,10 @@ sort_range:
             lw      $a1, 20($sp)                    # a1: start
             lw      $a2, 12($sp)                    # a2: middle
             lw      $a3, 16($sp)                    # a3: end
+
+            lw      $t0, 40($sp)                    # tmp array
+            sw      $t0, 0($sp)
+
             jal merge
 
     ###############################################
@@ -665,7 +680,7 @@ sort_range:
             li      $v0, 4          
             syscall
 
-            lw      $a0, 28($sp)                     # a0: &sorted
+            lw      $a0, 28($sp)                    # a0: &sorted
             jal     print_list                      # call print_list(&sorted)
 
             li      $a0, 0xA                        # print a newline
@@ -682,5 +697,4 @@ sort_range:
             lw      $fp, 36($sp)
             addu    $sp, $sp, 40
             jr      $ra
-
 
