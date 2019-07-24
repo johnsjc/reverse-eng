@@ -1,6 +1,6 @@
 # merge.s
 #
-# Receives a list of numbers and sorts them.
+# Receives a list of numbers and sorts them in ascending order.
 # Uses merge sort.
 #
 # Example: ./merge.sh <n>
