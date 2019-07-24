@@ -148,7 +148,6 @@ main:
             syscall
 
             lw      $s0, 20($sp)                                # restore s0 value for caller
-            lw      $s1, 12($sp)                                # restore s1 value for caller
 
     main_epilogue:
 
