@@ -1,11 +1,12 @@
 # merge.s
 #
-# Receives a list of numbers and sorts them in ascending order.
-# Uses merge sort.
+# Receives a list of numbers and sorts them in ascending order using merge sort.
+# First sorts with a recursive algorithm and then with an iterative.
 #
 # Use merge.sh to generate random inputs.
 #
-# Example: ./merge.sh <n>
+# Example run:
+#
 # $ ./merge.sh 3
 #
 # Input: [2, 1, 3]
@@ -56,17 +57,17 @@
 
 input_msg:          .asciiz "Input: "
 sorted_msg:         .asciiz "Sorted: "
-top_down_msg:       .asciiz "\nSorting using a top down (iterative) algorithm...\n"
-bottom_up_msg:      .asciiz "\nSorting using a bottom up (recursive) algorithm...\n"
+recursive_msg:       .asciiz "\nSorting using a recursive algorithm...\n"
+iterative_msg:      .asciiz "\nSorting using an iterative algorithm...\n"
 separator:          .asciiz "\n#################################\n"
 
 debug_sort:         .asciiz "[DEBUG] Sort: "
 debug_split:        .asciiz "[DEBUG] Split: "
-debug_split_delim:  .asciiz " | "
 debug_left:         .asciiz "[DEBUG] Sorted left half: "
 debug_right:        .asciiz "[DEBUG] Sorted right half: "
 debug_merge:        .asciiz "[DEBUG] Merged result: "
-debug_width:        .asciiz "[DEBUG] Size: "
+debug_size:         .asciiz "[DEBUG] Size: "
+debug_split_delim:  .asciiz " | "
 
             .text
 main: 
@@ -74,13 +75,13 @@ main:
     main_prologue:
 
             subu    $sp, $sp, 32
-            sw      $ra, 28($sp)
-            sw      $fp, 24($sp)
+            sw      $fp, 28($sp)
+            sw      $ra, 24($sp)
             addu    $fp, $sp, 32
 
     main_init:
 
-            sw      $s0, 20($sp)
+            sw      $s0, 20($sp)                                # preserve the s0 register for the caller
             li      $s0, 0                                      # s0: debug flag (0 = true, 1 = false)
 
 # A list has the following structure:
@@ -88,46 +89,46 @@ main:
 #           int     n_elements;
 #           int     *elements;
 #       } list_t;
+
     main_create_list:
 
             li      $v0, 5                                      # read the first int in the input
-            syscall
+            syscall                                             # which is the number of list elements
             move    $t0, $v0                                    # t0: number of ints
 
-            li      $a0, 8                                      # allocate 8 bytes for list structure
-            li      $v0, 9
+            li      $a0, 8                                      # allocate 8 bytes on the heap for the input list
+            li      $v0, 9                                      # { int n_elements, int *elements }
             syscall
-            move    $t1, $v0                                    # t1: &list
-    
-            sw      $t0, 0($t1)                                 # first field: number of elements
-            
-            move    $t2, $t0                                    # t2: size in bytes
-            mul     $t2, $t2, 4                                 # each int is 4 bytes
-            move    $a0, $t2
-            li      $v0, 9
-            syscall                                             
-            move    $t2, $v0                                    # t2: pointer to elements 
-            sw      $v0, 4($t1)                                 # second field: pointer to elements
+            move    $t1, $v0                                    # t1: &input_list
 
-            sw      $t1, 16($sp)                                # save the list to the stack
+            move    $t2, $t0                                    # t2: size of input.elements (bytes)
+            mul     $t2, $t2, 4     
+
+            move    $a0, $t2                                    # allocate t2 bytes on the heap
+            li      $v0, 9      
+            syscall     
+            move    $t2, $v0                                    # t2: input_list.elements
+
+            sw      $t0, 0($t1)                                 # input_list.n_elements
+            sw      $t2, 4($t1)                                 # input_list.elements 
 
             li      $t3, 0                                      # i = 0
 
-    main_read_ints:
+    main_read_ints:                                             # read each int from the input and store in input_list
 
             beq     $t3, $t0, main_read_ints_end
-            li      $v0, 5                              
-            syscall                                             # call read_int
-            sw      $v0, ($t2)                                  # save the result in &sorted
-            addu    $t2, $t2, 4                                 # increment sorted pointer
+
+            li      $v0, 5                                      # read the next integer
+            syscall                                             
+            sw      $v0, ($t2)                                  # store the integer in input_list
+
+            addu    $t2, $t2, 4                                 # input_list.elements++
             add     $t3, $t3, 1                                 # i++
             b       main_read_ints                   
 
     main_read_ints_end:
 
-            sw      $t0, 4($sp)
-
-            li      $a0, 0xA
+            li      $a0, 0xA                                    # print a new line
             li      $v0, 11
             syscall
 
@@ -135,191 +136,559 @@ main:
             li      $v0, 4
             syscall
             
-            lw      $a0, 16($sp)                                # print the unsorted list
+            move    $a0, $t1                                    # print the input_list
             jal     print_list
-            li      $a0, 0xA
+
+            li      $a0, 0xA                                    # print a new line
             li      $v0, 11
             syscall
 
-            lw      $a0, 16($sp)
+            move    $a0, $t1
             jal     sort                                        # sort the list
 
-
     exit:
-            li      $v0, 10
+            li      $v0, 10                                     # terminate the program
             syscall
 
             lw      $s0, 20($sp)                                # restore s0 value for caller
 
     main_epilogue:
 
-            lw      $fp, 24($sp)
-            lw      $ra, 28($sp)
-            addu    $sp, $sp, 32
-            jr      $ra
-
-
-
-###################################################
-print_list:
-# Pretty prints a list.
-# e.g. [1, 2, 3, 4]
-#
-# Parameters:
-#       a0:     list &list {n_elements, *elements}
-#
-# Returns:
-#       v0:     &list (unmodified)
-    print_list_prologue:
-
-            subu    $sp, $sp, 32
-            sw      $fp, 28($sp)
-            sw      $ra, 24($sp)
-            addu    $fp, $sp, 32
-
-    print_list_init:
-
-            sw      $t0, 20($sp)
-            sw      $t1, 16($sp)
-            sw      $t2, 12($sp)
-            sw      $t3, 8($sp)
-
-            li      $a1, 0                                      # start
-            lw      $a2, 0($a0)                                 # end (n_elements)
-            jal     print_list_range
-
-            lw      $t3, 8($sp)
-            lw      $t2, 12($sp)
-            lw      $t1, 16($sp)
-            lw      $t0, 20($sp)
-
-    print_list_epilogue:
-
-            lw      $ra, 24($sp)
             lw      $fp, 28($sp)
+            lw      $ra, 24($sp)
             addu    $sp, $sp, 32
             jr      $ra
 
+
+
 ###################################################
-print_list_range:
-# Pretty prints a list.
-# e.g. [1, 2, 3, 4]
+sort:
+# Sorts a list using merge sort.
 # Clobbers registers t0-t3
 #
 # Parameters:
-#       a0:     list &list {n_elements, *elements}
-#       a1:     start_index
-#       a2:     end_index
+#       a0:     list &unsorted {n_elements, *elements}
 #
 # Returns:
-#       v0:     &list (unmodified)
+#       None (Modified in place)
 ###################################################
-    print_list_range_prologue:
+    sort_prologue:
 
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             sw      $ra, 24($sp)
             addu    $fp, $sp, 32
 
-    print_list_range_init:
+    sort_init:
 
-            sw      $a0, 20($sp)                                # a0: local &list
+            sw      $a0, 20($sp)                            # local variable: &unsorted
 
-            move    $t0, $a1                                    # t0: start
-            move    $t1, $a2                                    # t1: end (non inclusive)
-            lw      $t2, 4($a0)                                 # t2: list.elements
+            li      $a0, 8                                  # allocate space on the heap for &tmp list
+            li      $v0, 9
+            syscall
+            move    $t0, $v0                                # t0: &tmp
+            sw      $v0, 16($sp)                            # local variable: &tmp
+
+            lw      $t1, 20($sp)                            # t1: unsorted
+            lw      $t1, 0($t1)                             # t1: unsorted.n_elements
+            sw      $t1, 0($t0)                             # tmp.n_elements = unsorted.n_elements
+
+            mul     $a0, $t1, 4                             # allocate space for tmp.elements
+            li      $v0, 9
+            syscall
+            sw      $v0, 4($t0)                             # store pointer in tmp.elements
+
+            la      $a0, recursive_msg                      # sort using recursive bottom-up algorithm
+            li      $v0, 4                                  # print "Sorting using a recursive algorithm.."
+            syscall
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+
+            lw      $a0, 20($sp)                            # 1st arg: &unsorted
+            li      $a1, 0                                  # 2nd arg: start index
+            move    $a2, $t1                                # 3rd arg: end index
+            lw      $a3, 16($sp)                            # 4th arg: $tmp 
+            li      $t0, 0
+            sw      $t0, 0($sp)                             # 5th arg: depth (passed on stack)            
+            jal     sort_recursive                          # call sort_recursive
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+ 
+            la      $a0, sorted_msg                         # print "Sorted: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 20($sp)                            # print the sorted list
+            jal     print_list
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+            
+            clear_tmp_list: 
+
+            li      $t0, 0                                  # i = 0
+            lw      $t1, 16($sp)                             
+            lw      $t2, 4($t1)                             # t2: tmp.elements
+            lw      $t1, 0($t1)                             # t1: tmp.length
     
-            mul     $t3, $t0, 4                                 # offset into list.elements
-            addu    $t2, $t2, $t3
+ 
+            clear_tmp_list_loop:                                     
+            
+            beq     $t0, $t1, clear_tmp_list_loop_end
+            li      $t3, 0                                  # t3: 0
+            sw      $t3, ($t2)                              # store t3 in tmp.elements[i]
 
-            li      $a0, 0x5b                                   # print "["
-            li      $v0, 11
+            addu    $t2, $t2, 4                             # tmp.elements++
+            add     $t0, $t0, 1                             # i++
+
+            b clear_tmp_list_loop 
+
+            clear_tmp_list_loop_end:
+
+            la      $a0, separator                          # print a separator
+            li      $v0, 4
             syscall
             
-    print_list_range_loop:
-
-            beq     $t0, $t1, print_list_range_loop_end
-
-            lw      $a0, ($t2)                                  # print *list.elements
-            li      $v0, 1
+            la      $a0, iterative_msg                      # sort using iterative top-down algorithm
+            li      $v0, 4                                  # print "Sorting using an iterative algorithm.."
             syscall
-
-            sub     $t3, $t1, 1                                 # t3: list.n_elements - 1
-            beq     $t0, $t3, print_list_range_skip_comma       # if the last element, skip the comma
-
-            li      $a0, 0x2c                                   # else print ","
-            li      $v0, 11
-            syscall
-
-            li      $a0, 0x20                                   # print " "
-            li      $v0, 11
-            syscall           
-
-    print_list_range_skip_comma:            
-
-            addu    $t2, $t2, 4                                 # list.elements++
-            add     $t0, $t0, 1                                 # i++
-            b       print_list_range_loop
-
-    print_list_range_loop_end:         
-
-            li      $a0, 0x5d                                   # print "]"
-            li      $v0, 11
-            syscall
-
-    print_list_range_end:
             
-            lw      $v0, 20($sp)                                # return &list
-            move    $a0, $v0                                    # leave argument unchanged
-            
-    print_list_range_epilogue:
+            lw      $a0, 20($sp)                            # 1st arg: &unsorted
+            li      $a1, 0                                  # 2nd arg: start index
+            move    $a2, $t1                                # 3rd arg: end index
+            lw      $a3, 16($sp)                            # 4th arg: &tmp            
+            jal     sort_iterative                          # call sort_iterative
 
-            lw      $ra, 24($sp)
+            la      $a0, sorted_msg                         # print "Sorted: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 20($sp)                            # print the sorted list
+            jal     print_list
+
+            li      $a0, 0xA                                # print two new lines
+            li      $v0, 11
+            syscall
+            syscall
+ 
+    sort_epilogue:
+
             lw      $fp, 28($sp)
+            lw      $ra, 24($sp)
             addu    $sp, $sp, 32
             jr      $ra
 
 
+
 ###################################################
-print_tabs:
-# Prints tabs depending on the recursion level supplied.
-# Used for formatting debug output.
+sort_recursive:
+# Sorts a list using a recursive (bottom up) merge sort.
+# Clobbers registers t0-t2
+#
+# Parameters:
+#       a0:     list &unsorted {n_elements, *elements}
+#       a1:     int start_index
+#       a2:     int end_index
+#       a3:     list &tmp
+#       stack:  recursion depth (used for debug output)
+#
+# Returns:
+#       None (modifies the array in place)        
+###################################################
+    sort_recursive_prologue:
+
+            subu    $sp, $sp, 40
+            sw      $fp, 36($sp)
+            sw      $ra, 32($sp)
+            addu    $fp, $sp, 40
+
+    sort_recursive_init:
+
+            sw      $a0, 28($sp)                            # local var: &unsorted list
+            sw      $a1, 24($sp)                            # local var: start index
+            sw      $a2, 20($sp)                            # local var: end index
+            sw      $a3, 16($sp)                            # local var: &tmp
+               
+    ###############################################
+    # DEBUG
+            beq     $s0, 1, sort_recursive_post_debug_1     # skip if debug flag not set     
+            
+            lw      $a0, 40($sp)                            # 1st arg: depth
+            jal     print_tabs                              # call print_tabs
+
+            la      $a0, debug_sort                         # print debug message "[DEBUG] Sort: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 28($sp)                            # a0: &unsorted            
+            lw      $a1, 24($sp)                            # a1: start index
+            lw      $a2, 20($sp)                            # a2: end index
+            jal     print_list_range                        # print unsorted[start:end]
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+
+    ###############################################
+
+    sort_recursive_post_debug_1:
+            lw      $t1, 24($sp)                            # t1: start
+            lw      $t2, 20($sp)                            # t2: end
+
+            sub     $t0, $t2, $t1                           # t0: end - start (length of list range)
+            beq     $t0, 1, sort_recursive_epilogue         # return if length = 1
+
+
+            add     $t0, $t1, $t2                           # middle = (start + end) / 2 (truncated)
+            srl     $t0, $t0, 1
+            sw      $t0, 12($sp)                            # local var: middle index
+
+    ###############################################
+    # DEBUG
+            beq     $s0, 1, sort_recursive_post_debug_2     # skip if debug flag not set 
+
+            lw      $a0, 40($sp)                            # a0: depth
+            jal     print_tabs                              # call print_tabs
+
+            la      $a0, debug_split                        # print debug message "[DEBUG] Split: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 28($sp)                            # a0: &unsorted
+            lw      $a1, 24($sp)                            # a1: start index
+            lw      $a2, 12($sp)                            # a2: middle index
+            jal     print_list_range                        # print unsorted[start:middle]
+
+            la      $a0, debug_split_delim                  # print debug message " | "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 28($sp)                            # a0: &unsorted
+            lw      $a1, 12($sp)                            # a1: middle index
+            lw      $a2, 20($sp)                            # a2: end index
+            jal     print_list_range                        # print unsorted[middle:end]
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+
+    ###############################################
+
+    sort_recursive_post_debug_2:
+
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 24($sp)                            # 2nd arg: start index
+            lw      $a2, 12($sp)                            # 3rd arg: middle index
+            lw      $a3, 16($sp)                            # 4th arg: &tmp
+
+            lw      $t0, 40($sp)
+            add     $t0, $t0, 1                             # depth++
+            sw      $t0, 0($sp)                             # 5th arg: depth
+
+            jal     sort_recursive                          # call sort_recursive(start, middle)
+            
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 12($sp)                            # 2nd arg: middle index
+            lw      $a2, 20($sp)                            # 3rd arg: end index
+            lw      $a3, 16($sp)                            # 4th arg: &tmp
+
+            lw      $t0, 40($sp)
+            add     $t0, $t0, 1                             # depth++
+            sw      $t0, 0($sp)                             # 5th arg: depth
+
+            jal     sort_recursive                          # call sort_recursive(middle, end)
+    
+    ###############################################
+    # DEBUG
+            beq     $s0, 1, sort_recursive_post_debug_3     # skip if debug flag not set
+
+            lw      $a0, 40($sp)                            # 1st arg: depth
+            jal     print_tabs                              # call print_tabs
+
+            la      $a0, debug_left                         # print debug message "[DEBUG] Sorted left half: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 24($sp)                            # 2nd arg: start index
+            lw      $a2, 12($sp)                            # 3rd arg: middle index
+            jal     print_list_range                        # print unsorted[start:middle]
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+
+            lw      $a0, 40($sp)                            # 1st arg: depth
+            jal     print_tabs                              # call print_tabs
+
+            la      $a0, debug_right                        # print debug message "[DEBUG] Sorted right half: "
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 12($sp)                            # 2nd arg: middle index
+            lw      $a2, 20($sp)                            # 3rd arg: end index
+            jal     print_list_range                        # print unsorted[middle:end]
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+
+    ###############################################
+
+    sort_recursive_post_debug_3:   
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 24($sp)                            # 2nd arg: start index
+            lw      $a2, 12($sp)                            # 3rd arg: middle index
+            lw      $a3, 20($sp)                            # 4th arg: end index  
+
+
+            lw      $t0, 16($sp)                    
+            sw      $t0, 0($sp)                             # 5th arg: &tmp (passed on stack)
+            
+            jal merge                                       # call merge
+    
+    ###############################################
+    # DEBUG        
+            beq     $s0, 1, sort_recursive_post_debug_4     # skip if debug flag not set
+
+            lw      $a0, 40($sp)                            # 1st arg: depth
+            jal     print_tabs                              # call print_tabs
+
+            la      $a0, debug_merge                        # print debug message "[DEBUG] Merged result: "
+            li      $v0, 4          
+            syscall
+
+            lw      $a0, 28($sp)                            # 1st arg: &unsorted
+            lw      $a1, 24($sp)                            # 2nd arg: start index
+            lw      $a2, 20($sp)                            # 3rd arg: end index
+            jal     print_list_range                        # print unsorted[start:end]
+
+            li      $a0, 0xA                                # print a new line
+            li      $v0, 11
+            syscall
+    ###############################################
+    
+    sort_recursive_post_debug_4:
+            b       sort_recursive_epilogue
+
+    sort_recursive_epilogue:
+
+            lw      $fp, 36($sp)
+            lw      $ra, 32($sp)
+            addu    $sp, $sp, 40
+            jr      $ra
+
+
+
+###################################################
+sort_iterative:
+# Sorts a list using an iterative (top down) merge sort
 # Clobbers register t0
 #
 # Parameters:
-#       a0:     number of tabs to print (int)
+#       a0:     list &unsorted {n_elements, *elements}
+#       a1:     int start_index
+#       a2:     int end_index
+#       a3:     list &tmp
 #
 # Returns:
-#       None
+#       None (modifies the array in place)
 ###################################################
-    print_tabs_prologue:
+    sort_iterative_prologue:
 
-            subu    $sp, $sp, 32
-            sw      $fp, 28($sp)
-            addu    $fp, $sp, 32        
+            subu    $sp, $sp, 48
+            sw      $fp, 44($sp)
+            sw      $ra, 40($sp)
+            addu    $fp, $sp, 48
 
-    print_tabs_init:
+    sort_iterative_init:
 
-            move    $t1, $a0                                # a0: n_tabs
-            li      $t0, 0                                  # i = 0
+            sw      $a0, 36($sp)                            # local var: &unsorted
+            sw      $a1, 32($sp)                            # local var: start index
+            sw      $a2, 28($sp)                            # local var: end index
+            sw      $a3, 24($sp)                            # local var: &tmp
+ 
+            li      $t0, 1                                  # t0: width
+            lw      $t1, 36($sp)
+            lw      $t1, 0($t1)                             # t1: unsorted.length (sentinel)
 
-    print_tabs_loop:
+            
+        ###############################################
+        # DEBUG
+            beq     $s0, 1, sort_iterative_post_debug_0
 
-            beq     $t0, $t1, print_tabs_end
-
-            li      $a0, 0x9                                # print a tab
+            li      $a0, 0xA                                # print a new line
             li      $v0, 11
+
             syscall
 
-            add     $t0, $t0, 1                             # i++
+        ###############################################
 
-            b       print_tabs_loop
+        sort_iterative_post_debug_0:
 
-    print_tabs_end:
+        top_down_outer_loop:
 
-            lw      $fp, 28($sp)
-            addu    $sp, $sp, 32
+            bge     $t0, $t1, top_down_outer_loop_end
+                
+            ###############################################
+            # DEBUG
+                beq     $s0, 1, sort_iterative_post_debug_1
+                    
+                la      $a0, debug_size                     # print "Size: "
+                li      $v0, 4
+                syscall
+
+                move    $a0, $t0                            # print width
+                li      $v0, 1
+                syscall
+
+                li      $a0, 0xA                            # print a new line
+                li      $v0, 11
+                syscall
+                  
+            ###############################################
+               
+            sort_iterative_post_debug_1:
+
+                
+            li      $t2, 0                                  # i = 0
+
+            top_down_inner_loop:     
+            
+                bge     $t2, $t1, top_down_inner_loop_end
+
+                move    $t4, $t2                            # start = i
+                sw      $t4, 32($sp)                    
+
+
+                move    $t4, $t2
+                add     $t4, $t4, $t0                       # middle = i + width
+                blt     $t4, $t1, middle_smaller            # if middle >= unsorted.length
+                middle_larger:      
+                move    $t4, $t1                            # middle = unsorted.length
+                middle_smaller:                             # else middle = i + width
+                sw      $t4, 20($sp)                        # middle = min(i+width, unsorted.length)
+
+                mul     $t4, $t0, 2
+                add     $t4, $t4, $t2                       # end = i + 2 * width
+                blt     $t4, $t1, end_smaller               # if end >= unsorted.length
+                end_larger:                         
+                move    $t4, $t1                            # end = unsorted.length
+                end_smaller:                                # else end = i + 2 * width
+                sw      $t4, 28($sp)                        # end = min(i+2*width, unsorted.length)           
+                    
+                sw      $t0, 16($sp)                        # save t0-t2
+                sw      $t1, 12($sp)
+                sw      $t2, 8($sp)
+
+                ###############################################
+                # DEBUG
+                    beq     $s0, 1, sort_iterative_post_debug_2    
+
+                    la      $a0, debug_split                # print "[DEBUG] Split: "
+                    li      $v0, 4
+                    syscall
+
+                    lw      $a0, 36($sp)                    # print unsorted[start:middle]
+                    lw      $a1, 32($sp)                    
+                    lw      $a2, 20($sp)
+                    jal     print_list_range 
+
+                    lw      $t0, 20($sp)                    # t0: middle
+                    lw      $t1, 28($sp)                    # t1: end
+                    beq     $t0, $t1, debug_skip_print_list # skip printing empty lists in the output
+
+                    la      $a0, debug_split_delim          # print " | "
+                    li      $v0, 4
+                    syscall
+
+                    lw      $a0, 36($sp)                    # print unsorted[middle:end]                    
+                    lw      $a1, 20($sp)
+                    lw      $a2, 28($sp)
+                    jal     print_list_range   
+
+                    debug_skip_print_list:
+
+                    li      $a0, 0xA                        # print a new line
+                    li      $v0, 11
+                    syscall
+
+                ###############################################
+
+                sort_iterative_post_debug_2:
+                    
+                    lw      $a0, 36($sp)                    # 1st arg: &unsorted
+                    lw      $a1, 32($sp)                    # 2nd arg: start_index
+                    lw      $a2, 20($sp)                    # 3rd arg: middle_index
+                    lw      $a3, 28($sp)                    # 4th arg: end_index
+
+                    lw      $t0, 24($sp)                    # 5th arg: tmp array on stack
+                    sw      $t0, 0($sp)
+
+                    jal     merge                           # merge(unsorted, start, middle, end, tmp)
+ 
+                ###############################################
+                # DEBUG
+                    beq     $s0, 1, sort_iterative_post_debug_3
+
+                    la      $a0, debug_merge                # print "Merged result: "
+                    li      $v0, 4
+                    syscall
+
+                    lw      $a0, 36($sp)                    # print unsorted[start:end]
+                    lw      $a1, 32($sp)
+                    lw      $a2, 28($sp)
+                    jal     print_list_range
+    
+                    li      $a0, 0xA                        # print a new line
+                    li      $v0, 11
+                    syscall
+
+                    ###############################################
+                    
+                    sort_iterative_post_debug_3:
+
+                    lw      $t0, 16($sp)                    # restore t0-t3
+                    lw      $t1, 12($sp)
+                    lw      $t2, 8($sp)
+
+                    mul     $t3, $t0, 2
+                    add     $t2, $t2, $t3                   # i = i + 2 * width
+
+                    b       top_down_inner_loop
+      
+            top_down_inner_loop_end:
+                
+            ###############################################
+            # DEBUG
+                beq     $s0, 1, sort_iterative_post_debug_4
+                
+                li      $a0, 0xA                            # print a new line
+                li      $v0, 11
+                syscall
+                
+                ###############################################
+            
+                sort_iterative_post_debug_4:
+
+                mul     $t0, $t0, 2                     # width = width * 2    
+                b       top_down_outer_loop
+
+            top_down_outer_loop_end:
+            
+    sort_iterative_epilogue:
+
+            lw      $fp, 44($sp)
+            lw      $ra, 40($sp)
+            addu    $sp, $sp, 48
             jr      $ra
+
 
 
 ###################################################
@@ -338,7 +707,7 @@ merge:
 #       stack:  tmp array
 # 
 # Returns:
-#       v0:     list &merged {n_elements, *elements}
+#       None (Modifies in place)
 ###################################################
     merge_prologue:
 
@@ -381,12 +750,14 @@ merge:
             lw      $t6, ($t3)                              # t5: *unsorted.elements[j]
 
             lw      $t3, 32($sp)                            # t3: tmp
+
             lw      $t3, 4($t3)                             # t3: tmp.elements
             mul     $t4, $t2, 4                             # t4: offset k into tmp.elements
             addu    $t3, $t3, $t4                           # t3: &tmp.elements[k]
-            bgt     $t5, $t6, list_b_smaller              
-
-    list_a_smaller:
+            
+            bgt     $t5, $t6, merge_list_b_smaller              
+    
+    merge_list_a_smaller:
             
             sw      $t5, ($t3)                              # tmp.elements[k] = a.elements[i]
 
@@ -395,7 +766,7 @@ merge:
 
             b       merge_loop
 
-    list_b_smaller:
+    merge_list_b_smaller:
 
             sw      $t6, ($t3)                              # tmp.elements[k] = b.elements[j]
 
@@ -480,526 +851,174 @@ merge:
 
     merge_epilogue:
 
-            lw      $ra, 24($sp)
             lw      $fp, 28($sp)
+            lw      $ra, 24($sp)
             addu    $sp, $sp, 32 
             jr      $ra
 
+
+
 ###################################################
-sort:
-# Sorts a list using merge sort.
-# Clobbers registers t0-t2
+print_list:
+# Pretty prints a list.
+# e.g. [1, 2, 3, 4]
 #
 # Parameters:
-#       a0:     list &unsorted {n_elements, *elements}
+#       a0:     list &list {n_elements, *elements}
 #
 # Returns:
-#       v0:     list $sorted {n_elements, *elements}        
+#       v0:     &list (unmodified)
 ###################################################
-    sort_prologue:
+    print_list_prologue:
 
             subu    $sp, $sp, 32
             sw      $fp, 28($sp)
             sw      $ra, 24($sp)
             addu    $fp, $sp, 32
 
-    sort_init:
+    print_list_init:
 
-            sw      $a0, 20($sp)                            # local &unsorted
+            sw      $t0, 20($sp)                            # save t0-t3 from being clobbered
+            sw      $t1, 16($sp)
+            sw      $t2, 12($sp)
+            sw      $t3, 8($sp)
 
-            li      $a0, 8                                  # allocate space for &tmp
-            li      $v0, 9
-            syscall
-            move    $t0, $v0                                # t0: &tmp
-            sw      $v0, 16($sp)                            # local &tmp
+            li      $a1, 0                                  # 1st arg: start index
+            lw      $a2, 0($a0)                             # 2nd arg: end index (n_elements)
+            jal     print_list_range                        # call print_list_range
 
-            lw      $t1, 20($sp)                            # t1: tmp.n_elements
-            lw      $t1, 0($t1)
-            sw      $t1, 0($t0)                             # { n_elements, _ }
+            lw      $t3, 8($sp)                             # restore registers
+            lw      $t2, 12($sp)
+            lw      $t1, 16($sp)
+            lw      $t0, 20($sp)
 
-            mul     $a0, $t1, 4                             # allocate space for tmp.elements
-            li      $v0, 9
-            syscall
-            sw      $v0, 4($t0)                             # { _, *elements }
-
-            la      $a0, bottom_up_msg                      # sort using recursive bottom-up algorithm
-            li      $v0, 4
-            syscall
-
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
-
-            li      $a1, 0                                  # recursion level
-            li      $a2, 0                                  # start index
-            move    $a3, $t1                                # end index
-            sw      $t0, 0($sp)                             # tmp array on stack
-            lw      $a0, 20($sp)
-            jal     sort_bottom_up   
-
-            li      $t0, 0                                  # i = 0
-            lw      $t1, 0($sp)                            
-            lw      $t2, 4($t1)                             # t2: tmp.elements
-            lw      $t1, 0($t1)                             # t1: tmp.length
-    
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
- 
-            la      $a0, sorted_msg                         # print "Sorted: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 20($sp)                            # print the sorted list
-            jal     print_list
-
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
-            
-            clear_loop:                                     # clear tmp array
-            
-            beq     $t0, $t1, end_clear_loop
-            li      $t3, 0
-            sw      $t3, ($t2)
-
-            addu    $t2, $t2, 4                             # tmp.elements++
-            add     $t0, $t0, 1                             # i++
-            b clear_loop 
-
-            end_clear_loop:
-
-            la      $a0, separator
-            li      $v0, 4
-            syscall
-
-            la      $a0, top_down_msg                       # sort using iterative top-down algorithm
-            li      $v0, 4
-            syscall
-            
-            li      $a1, 0                              
-            li      $a2, 0
-            move    $a3, $t1
-            lw      $a0, 20($sp)
-            jal     sort_top_down
-
-            la      $a0, sorted_msg                             # print "Sorted: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 20($sp)                                # print the sorted list
-            jal     print_list
-
-            li      $a0, 0xA
-            li      $v0, 11
-            syscall
-            syscall
- 
-    sort_epilogue:
+    print_list_epilogue:
 
             lw      $ra, 24($sp)
             lw      $fp, 28($sp)
             addu    $sp, $sp, 32
             jr      $ra
 
+
+
 ###################################################
-sort_top_down:
-# Sorts a list using an iterative (top down) merge sort
+print_list_range:
+# Pretty prints a list.
+# e.g. [1, 2, 3, 4]
+# Clobbers registers t0-t3
+#
+# Parameters:
+#       a0:     list &list {n_elements, *elements}
+#       a1:     start_index
+#       a2:     end_index
+#
+# Returns:
+#       v0:     &list (unmodified)
+###################################################
+    print_list_range_prologue:
+
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            sw      $ra, 24($sp)
+            addu    $fp, $sp, 32
+
+    print_list_range_init:
+
+            sw      $a0, 20($sp)                                # a0: local &list
+
+            move    $t0, $a1                                    # t0: start
+            move    $t1, $a2                                    # t1: end (non inclusive)
+            lw      $t2, 4($a0)                                 # t2: list.elements
+    
+            mul     $t3, $t0, 4                                 # offset into list.elements
+            addu    $t2, $t2, $t3
+
+            li      $a0, 0x5b                                   # print "["
+            li      $v0, 11
+            syscall
+            
+    print_list_range_loop:
+
+            beq     $t0, $t1, print_list_range_loop_end
+
+            lw      $a0, ($t2)                                  # print *list.elements
+            li      $v0, 1
+            syscall
+
+            sub     $t3, $t1, 1                                 # t3: list.n_elements - 1
+            beq     $t0, $t3, print_list_range_skip_comma       # if the last element, skip the comma
+
+            li      $a0, 0x2c                                   # else print ","
+            li      $v0, 11
+            syscall
+
+            li      $a0, 0x20                                   # print " "
+            li      $v0, 11
+            syscall           
+
+    print_list_range_skip_comma:            
+
+            addu    $t2, $t2, 4                                 # list.elements++
+            add     $t0, $t0, 1                                 # i++
+            b       print_list_range_loop
+
+    print_list_range_loop_end:         
+
+            li      $a0, 0x5d                                   # print "]"
+            li      $v0, 11
+            syscall
+
+    print_list_range_end:
+            
+            lw      $v0, 20($sp)                                # return &list
+            move    $a0, $v0                                    # leave argument unchanged
+            
+    print_list_range_epilogue:
+
+            lw      $ra, 24($sp)
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32
+            jr      $ra
+
+
+###################################################
+print_tabs:
+# Prints tabs depending on the recursion depth supplied.
+# Used for formatting debug output.
 # Clobbers register t0
 #
 # Parameters:
-#       a0:     list &unsorted {n_elements, *elements}
-#       a1:     int indent_level (used for debug ouput)
-#       a2:     int start_index
-#       a3:     int end_index
-#       stack:  tmp array
+#       a0:     number of tabs to print (int)
 #
 # Returns:
-#       None (modifies the array in place)
+#       None
 ###################################################
-    sort_top_down_prologue:
+    print_tabs_prologue:
 
-            subu    $sp, $sp, 48
-            sw      $fp, 44($sp)
-            sw      $ra, 40($sp)
-            addu    $fp, $sp, 48
+            subu    $sp, $sp, 32
+            sw      $fp, 28($sp)
+            addu    $fp, $sp, 32        
 
-    sort_top_down_init:
+    print_tabs_init:
 
-            sw      $a0, 36($sp)                        # local list &unsorted
-            sw      $a1, 32($sp)                        # local int indent_level
-            sw      $a2, 28($sp)                        # local int start_index
-            sw      $a3, 24($sp)                        # local int end_index
- 
-            li      $t0, 1                              # t0: width
-            lw      $t1, 36($sp)
-            lw      $t1, 0($t1)                         # t1: unsorted.length (sentinel)
+            move    $t1, $a0                                # t1: n_tabs
+            li      $t0, 0                                  # i = 0
 
-            
-            ###############################################
-            # DEBUG
+    print_tabs_loop:
 
-            beq     $s0, 1, sort_top_down_post_debug_0
-            li      $a0, 0xA
+            beq     $t0, $t1, print_tabs_end
+
+            li      $a0, 0x9                                # print a tab
             li      $v0, 11
             syscall
-            ###############################################
 
-            sort_top_down_post_debug_0:
+            add     $t0, $t0, 1                             # i++
 
-            top_down_outer_loop:
+            b       print_tabs_loop
 
-                bge     $t0, $t1, top_down_outer_loop_end
-                
-                ###############################################
-                # DEBUG
+    print_tabs_end:
 
-                beq     $s0, 1, sort_top_down_post_debug_1
-                    
-                la      $a0, debug_width                # print "Size: "
-                li      $v0, 4
-                syscall
-
-                move    $a0, $t0                        # print width
-                li      $v0, 1
-                syscall
-
-                li      $a0, 0xA
-                li      $v0, 11
-                syscall
-                  
-                ###############################################
-
-                
-                sort_top_down_post_debug_1:
-
-                
-                li      $t2, 0                          # i = 0
-
-                top_down_inner_loop:     
-            
-                    bge     $t2, $t1, top_down_inner_loop_end
-
-                    move    $t4, $t2                        # start = i
-                    sw      $t4, 28($sp)                    
-
-
-                    move    $t4, $t2
-                    add     $t4, $t4, $t0                   # middle = i + width
-                    blt     $t4, $t1, middle_smaller        # if middle >= unsorted.length
-                    middle_larger:      
-                    move    $t4, $t1                        # middle = unsorted.length
-                    middle_smaller:                         # else middle = i + width
-                    sw      $t4, 20($sp)                    # middle = min(i+width, unsorted.length)
-
-                    mul     $t4, $t0, 2
-                    add     $t4, $t4, $t2                   # end = i + 2 * width
-                    blt     $t4, $t1, end_smaller           # if end >= unsorted.length
-                    end_larger:                         
-                    move    $t4, $t1                        # end = unsorted.length
-                    end_smaller:                            # else end = i + 2 * width
-                    sw      $t4, 24($sp)                    # end = min(i+2*width, unsorted.length)           
-                    
-                    sw      $t0, 16($sp)                    # save t0-t2
-                    sw      $t1, 12($sp)
-                    sw      $t2, 8($sp)
-
-                    ###############################################
-                    # DEBUG
-
-                    beq     $s0, 1, sort_top_down_post_debug_2    
-
-                    la      $a0, debug_split                # print "[DEBUG] Split: "
-                    li      $v0, 4
-                    syscall
-
-                    lw      $a0, 36($sp)                    # print unsorted[start:middle]
-                    lw      $a1, 28($sp)                    
-                    lw      $a2, 20($sp)
-                    jal     print_list_range 
-
-                    lw      $t0, 20($sp)
-                    lw      $t1, 24($sp)
-                    beq     $t0, $t1, debug_skip_print_list
-
-                    la      $a0, debug_split_delim          # print " | "
-                    li      $v0, 4
-                    syscall
-
-                    lw      $a0, 36($sp)                    
-                    lw      $a1, 20($sp)
-                    lw      $a2, 24($sp)
-
-                    jal     print_list_range                # print unsorted[middle:end]
-
-                    debug_skip_print_list:
-
-                    li      $a0, 0xA
-                    li      $v0, 11
-                    syscall
-
-                    ###############################################
-                    sort_top_down_post_debug_2:
-                    
-                    lw      $a0, 36($sp)                    # 1st arg: &unsorted
-                    lw      $a1, 28($sp)                    # 2nd arg: start_index
-                    lw      $a2, 20($sp)                    # 3rd arg: middle_index
-                    lw      $a3, 24($sp)                    # 4th arg: end_index
-
-                    lw      $t0, 48($sp)                    # 5th arg: tmp array on stack
-                    sw      $t0, 0($sp)
-
-                    jal     merge                           # merge(unsorted, start, middle, end, tmp)
- 
-                    ###############################################
-                    # DEBUG
-
-                    beq     $s0, 1, sort_top_down_post_debug_3
-
-                    la      $a0, debug_merge
-                    li      $v0, 4
-                    syscall
-
-                    lw      $a0, 36($sp)
-                    lw      $a1, 28($sp)
-                    lw      $a2, 24($sp)
-                    jal     print_list_range
-    
-                    li      $a0, 0xA
-                    li      $v0, 11
-                    syscall
-
-                    ###############################################
-                    
-                    sort_top_down_post_debug_3:
-
-                    lw      $t0, 16($sp)                    # restore t0-t3
-                    lw      $t1, 12($sp)
-                    lw      $t2, 8($sp)
-
-                    mul     $t3, $t0, 2
-                    add     $t2, $t2, $t3                   # i = i + 2 * width
-
-                    b       top_down_inner_loop
-      
-            top_down_inner_loop_end:
-                
-                ###############################################
-                # DEBUG
-                
-                beq     $s0, 1, sort_top_down_post_debug_4
-                li      $a0, 0xA    
-                li      $v0, 11
-                syscall
-                
-                ###############################################
-            
-                sort_top_down_post_debug_4:
-
-                mul     $t0, $t0, 2                     # width = width * 2    
-                b       top_down_outer_loop
-
-            top_down_outer_loop_end:
-            
-    sort_top_down_epilogue:
-
-            lw      $fp, 44($sp)
-            lw      $ra, 40($sp)
-            addu    $sp, $sp, 48
+            lw      $fp, 28($sp)
+            addu    $sp, $sp, 32
             jr      $ra
 
-###################################################
-sort_bottom_up:
-# Sorts a list using a recursive (bottom up) merge sort.
-# Clobbers register t0
-#
-# Parameters:
-#       a0:     list &unsorted {n_elements, *elements}
-#       a1:     int recursion_level (used for debug output)
-#       a2:     int start_index
-#       a3:     int end_index
-#       stack:  tmp array
-#
-# Returns:
-#       None (modifies the array in place)        
-###################################################
-    sort_bottom_up_prologue:
-
-            subu    $sp, $sp, 40
-            sw      $fp, 36($sp)
-            sw      $ra, 32($sp)
-            addu    $fp, $sp, 40
-
-    sort_bottom_up_init:
-
-            sw      $a0, 28($sp)                    # local list &unsorted
-            sw      $a1, 24($sp)                    # local int recursion_level
-            sw      $a2, 20($sp)                    # local int start_index
-            sw      $a3, 16($sp)                    # local int end_index
-            
-               
-    ###############################################
-    # DEBUG
-            beq     $s0, 1, sort_bottom_up_post_debug_1 # skip if flag not set     
-            
-            lw      $a0, 24($sp)                    # a0: local recursion_level
-            jal     print_tabs                      # call print_tabs(recursion_level)
-
-            la      $a0, debug_sort                 # print debug message "[DEBUG] Sort: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 28($sp)                    # a0: local &unsorted            
-            lw      $a1, 20($sp)
-            lw      $a2, 16($sp)
-
-            jal     print_list_range                # call print_list(&unsorted)
-
-            li      $a0, 0xA                        # print a newline
-            li      $v0, 11
-            syscall
-    ###############################################
-
-    sort_bottom_up_post_debug_1:
-            lw      $t1, 20($sp)                    # t1: start
-            lw      $t2, 16($sp)                    # t2: end
-
-            sub     $t0, $t2, $t1                   # t0: end - start (length of list range)
-            beq     $t0, 1, sort_bottom_up_epilogue     # return if length = 1
-
-
-            add     $t0, $t1, $t2                   # middle = (start + end) / 2 (truncated)
-            srl     $t0, $t0, 1
-            sw      $t0, 12($sp)                    # local int middle_index
-
-    ###############################################
-    # DEBUG
-            beq     $s0, 1, sort_bottom_up_post_debug_2 # skip if flag not set 
-
-            lw      $a0, 24($sp)                    # a0: recursion_level
-            jal     print_tabs                      # call print_tabs(recursion_level)
-
-            la      $a0, debug_split                # print debug message "[DEBUG] Split: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 28($sp)                    # print list[start:middle]
-            lw      $a1, 20($sp)
-            lw      $a2, 12($sp)
-            jal     print_list_range
-
-            la      $a0, debug_split_delim          # print debug message " | "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 28($sp)                    # print list[middle:end]
-            lw      $a1, 12($sp)
-            lw      $a2, 16($sp)    
-            jal     print_list_range                
-
-            li      $a0, 0xA                        # print a newline
-            li      $v0, 11
-            syscall
-
-    ###############################################
-
-    sort_bottom_up_post_debug_2:
-
-            lw      $a0, 28($sp)                    # a0: &unsorted
-            lw      $a1, 24($sp)                    # a1: recursion_level
-            add     $a1, $a1, 1
-            lw      $a2, 20($sp)                    # a2: start
-            lw      $a3, 12($sp)                    # a3: middle     
-
-            lw      $t0, 40($sp)
-            sw      $t0, 0($sp)                     # tmp array
-
-            jal     sort_bottom_up                      # call sort_bottom_up(unsorted, start, middle)
-            
-            lw      $a0, 28($sp)
-            lw      $a1, 24($sp)
-            add     $a1, $a1, 1
-            lw      $a2, 12($sp)
-            lw      $a3, 16($sp)
-
-            lw      $t0, 40($sp)                    # tmp array
-            sw      $t0, 0($sp)
-
-            jal     sort_bottom_up                      # call sort_bottom_up(unsorted, middle, end)
-    
-    ###############################################
-    # DEBUG
-            beq     $s0, 1, sort_bottom_up_post_debug_3 # skip if flag not set
-
-            lw      $a0, 24($sp)                    # a0: recursion_level
-            jal     print_tabs                      # call print_tabs(recursion_level)
-
-            la      $a0, debug_left                 # print debug message "[DEBUG] Sorted left half: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 28($sp)                    # print unsorted[start:middle]
-            lw      $a1, 20($sp)
-            lw      $a2, 12($sp)
-            jal     print_list_range
-
-            li      $a0, 0xA                        # print a newline
-            li      $v0, 11
-            syscall
-
-            lw      $a0, 24($sp)                    # a0: recursion_level
-            jal     print_tabs                      # call print_tabs(recursion_level)
-
-            la      $a0, debug_right                # print debug message "[DEBUG] Sorted right half: "
-            li      $v0, 4
-            syscall
-
-            lw      $a0, 28($sp)
-            lw      $a1, 12($sp)
-            lw      $a2, 16($sp)
-            jal     print_list_range
-
-            li      $a0, 0xA                        # print a newline
-            li      $v0, 11
-            syscall
-    ###############################################
-
-    sort_bottom_up_post_debug_3:   
-            lw      $a0, 28($sp)                    # a0: local &unsorted
-            lw      $a1, 20($sp)                    # a1: start
-            lw      $a2, 12($sp)                    # a2: middle
-            lw      $a3, 16($sp)                    # a3: end
-
-            lw      $t0, 40($sp)                    # tmp array
-            sw      $t0, 0($sp)
-
-            jal merge
-
-    ###############################################
-    # DEBUG        
-            beq     $s0, 1, sort_bottom_up_post_debug_4 # skip if flag not set
-
-            lw      $a0, 24($sp)                    # a0: recursion_level
-            jal     print_tabs                      # call print_tabs(recursion_level)
-
-            la      $a0, debug_merge                # print debug message "[DEBUG] Merged result: "
-            li      $v0, 4          
-            syscall
-
-            lw      $a0, 28($sp)                    # a0: &sorted
-            jal     print_list                      # call print_list(&sorted)
-
-            li      $a0, 0xA                        # print a newline
-            li      $v0, 11
-            syscall
-    ###############################################
-
-    sort_bottom_up_post_debug_4:
-            b       sort_bottom_up_epilogue
-
-    sort_bottom_up_epilogue:
-
-            lw      $ra, 32($sp)
-            lw      $fp, 36($sp)
-            addu    $sp, $sp, 40
-            jr      $ra
