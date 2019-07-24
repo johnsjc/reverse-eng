@@ -5,21 +5,28 @@
 #
 # Example: ./merge.sh <n>
 # $ ./merge.sh 3
-# Input: [3, 1, 2]
+#
+# Input: [2, 1, 3]
+#
 # Sorting using a bottom up (recursive) algorithm...
-# [DEBUG] Sort: [3, 1, 2]
-# [DEBUG] Split: [3] | [1, 2]
-#         [DEBUG] Sort: [3]
-#         [DEBUG] Sort: [1, 2]
-#         [DEBUG] Split: [1] | [2]
+#
+# [DEBUG] Sort: [2, 1, 3]
+# [DEBUG] Split: [2] | [1, 3]
+#         [DEBUG] Sort: [2]
+#         [DEBUG] Sort: [1, 3]
+#         [DEBUG] Split: [1] | [3]
 #                 [DEBUG] Sort: [1]
-#                 [DEBUG] Sort: [2]
+#                 [DEBUG] Sort: [3]
 #         [DEBUG] Sorted left half: [1]
-#         [DEBUG] Sorted right half: [2]
-#         [DEBUG] Merged result: [3, 1, 2]
-# [DEBUG] Sorted left half: [3]
-# [DEBUG] Sorted right half: [1, 2]
+#         [DEBUG] Sorted right half: [3]
+#         [DEBUG] Merged result: [2, 1, 3]
+# [DEBUG] Sorted left half: [2]
+# [DEBUG] Sorted right half: [1, 3]
 # [DEBUG] Merged result: [1, 2, 3]
+#
+# Sorted: [1, 2, 3]
+#
+#################################
 #
 # Sorting using a top down (iterative) algorithm...
 #
@@ -34,18 +41,15 @@
 # [DEBUG] Merged result: [1, 2, 3]
 #
 # Sorted: [1, 2, 3]
-
-# e.g. n = 5 
 #
-# 5         : number of ints to follow
-# 5         : ints that make up the list
+#
+# merge.sh creates a file in the following format:
+# 3         # number of integers to follow
+# 2         # one integer per line
 # 1
 # 3
-# 2
-# 4
-#
-# creates array [1, 2, 3, 4, 5]
-#
+####################################
+
             .data
 
 input_msg:          .asciiz "Input: "
@@ -998,4 +1002,3 @@ sort_bottom_up:
             lw      $fp, 36($sp)
             addu    $sp, $sp, 40
             jr      $ra
-
