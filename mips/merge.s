@@ -2,8 +2,39 @@
 #
 # Receives a list of numbers and sorts them.
 # Uses merge sort.
-# Usage: ./merge.sh <n>
 #
+# Example: ./merge.sh <n>
+# $ ./merge.sh 3
+# Input: [3, 1, 2]
+# Sorting using a bottom up (recursive) algorithm...
+# [DEBUG] Sort: [3, 1, 2]
+# [DEBUG] Split: [3] | [1, 2]
+#         [DEBUG] Sort: [3]
+#         [DEBUG] Sort: [1, 2]
+#         [DEBUG] Split: [1] | [2]
+#                 [DEBUG] Sort: [1]
+#                 [DEBUG] Sort: [2]
+#         [DEBUG] Sorted left half: [1]
+#         [DEBUG] Sorted right half: [2]
+#         [DEBUG] Merged result: [3, 1, 2]
+# [DEBUG] Sorted left half: [3]
+# [DEBUG] Sorted right half: [1, 2]
+# [DEBUG] Merged result: [1, 2, 3]
+#
+# Sorting using a top down (iterative) algorithm...
+#
+# [DEBUG] Size: 1
+# [DEBUG] Split: [1] | [2]
+# [DEBUG] Merged result: [1, 2]
+# [DEBUG] Split: [3]
+# [DEBUG] Merged result: [3]
+#
+# [DEBUG] Size: 2
+# [DEBUG] Split: [1, 2] | [3]
+# [DEBUG] Merged result: [1, 2, 3]
+#
+# Sorted: [1, 2, 3]
+
 # e.g. n = 5 
 #
 # 5         : number of ints to follow
