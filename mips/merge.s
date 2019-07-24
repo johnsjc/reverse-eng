@@ -3,6 +3,8 @@
 # Receives a list of numbers and sorts them in ascending order.
 # Uses merge sort.
 #
+# Use merge.sh to generate random inputs.
+#
 # Example: ./merge.sh <n>
 # $ ./merge.sh 3
 #
