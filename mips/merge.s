@@ -19,6 +19,8 @@
 
 input_msg:          .asciiz "Input: "
 sorted_msg:         .asciiz "Sorted: "
+top_down_msg:       .asciiz "Sorting using a top down (iterative) algorithm...\n"
+bottom_up_msg:      .asciiz "Sorting using a bottom up (recursive) algorithm...\n"
 
 debug_sort:         .asciiz "[DEBUG] Sort: "
 debug_split:        .asciiz "[DEBUG] Split: "
@@ -41,6 +43,8 @@ main:
 
             sw      $s0, 20($sp)
             li      $s0, 0                                      # s0: debug flag (0 = true, 1 = false)
+            sw      $s1, 12($sp)
+            li      $s1, 0                                      # algorithm flag (0 = iterative, 1 = recursive)
 
 # A list has the following structure:
 #       typedef struct _list_t {
@@ -117,6 +121,7 @@ main:
             syscall
 
             lw      $s0, 20($sp)                                # restore s0 value for caller
+            lw      $s1, 12($sp)                                # restore s1 value for caller
 
     main_epilogue:
 
@@ -489,12 +494,28 @@ sort:
             syscall
             sw      $v0, 4($t0)                             # { _, *elements }
 
-            lw      $a0, 20($sp)                            # &unsorted
             li      $a1, 0                                  # recursion level
             li      $a2, 0                                  # start index
             move    $a3, $t1                                # end index
             sw      $t0, 0($sp)                             # tmp array on stack
-            jal     sort_range
+
+            beq     $s1, 0, sort_alt_algorithm
+
+            la      $a0, bottom_up_msg
+            li      $v0, 4
+            syscall
+    
+            lw      $a0, 20($sp)                            # &unsorted
+            jal     sort_bottom_up
+            b       sort_epilogue
+            
+            sort_alt_algorithm:
+            la      $a0, top_down_msg
+            li      $v0, 4
+            syscall
+
+            lw      $a0, 20($sp)                            # &unsorted
+            jal sort_top_down
 
     sort_epilogue:
 
@@ -503,9 +524,28 @@ sort:
             addu    $sp, $sp, 32
             jr      $ra
 
+sort_top_down:
+
+    sort_top_down_prologue:
+
+            subu    $sp, $sp, 40
+            sw      $fp, 36($sp)
+            sw      $ra, 32($sp)
+            addu    $fp, $sp, 40
+
+    sort_top_down_init:
+
+   sort_top_down_epilogue:
+
+            lw      $fp, 36($sp)
+            lw      $ra, 32($sp)
+            addu    $sp, $sp, 40
+            jr      $ra
+b exit
+
 ###################################################
-sort_range:
-# Sorts the given range in a list using merge sort.
+sort_bottom_up:
+# Sorts a list using a recursive (bottom up) merge sort.
 # Clobbers register t0
 #
 # Parameters:
@@ -518,23 +558,24 @@ sort_range:
 # Returns:
 #       v0:     list $sorted {n_elements, *elements}        
 ###################################################
-    sort_range_prologue:
+    sort_bottom_up_prologue:
 
             subu    $sp, $sp, 40
             sw      $fp, 36($sp)
             sw      $ra, 32($sp)
             addu    $fp, $sp, 40
 
-    sort_range_init:
+    sort_bottom_up_init:
 
             sw      $a0, 28($sp)                    # local list &unsorted
             sw      $a1, 24($sp)                    # local int recursion_level
             sw      $a2, 20($sp)                    # local int start_index
             sw      $a3, 16($sp)                    # local int end_index
-                
+            
+               
     ###############################################
     # DEBUG
-            beq     $s0, 1, sort_range_post_debug_1 # skip if flag not set     
+            beq     $s0, 1, sort_bottom_up_post_debug_1 # skip if flag not set     
             
             lw      $a0, 24($sp)                    # a0: local recursion_level
             jal     print_tabs                      # call print_tabs(recursion_level)
@@ -554,12 +595,12 @@ sort_range:
             syscall
     ###############################################
 
-    sort_range_post_debug_1:
+    sort_bottom_up_post_debug_1:
             lw      $t1, 20($sp)                    # t1: start
             lw      $t2, 16($sp)                    # t2: end
 
             sub     $t0, $t2, $t1                   # t0: end - start (length of list range)
-            beq     $t0, 1, sort_range_epilogue     # return if length = 1
+            beq     $t0, 1, sort_bottom_up_epilogue     # return if length = 1
 
 
             add     $t0, $t1, $t2                   # middle = (start + end) / 2 (truncated)
@@ -568,7 +609,7 @@ sort_range:
 
     ###############################################
     # DEBUG
-            beq     $s0, 1, sort_range_post_debug_2 # skip if flag not set 
+            beq     $s0, 1, sort_bottom_up_post_debug_2 # skip if flag not set 
 
             lw      $a0, 24($sp)                    # a0: recursion_level
             jal     print_tabs                      # call print_tabs(recursion_level)
@@ -597,7 +638,7 @@ sort_range:
 
     ###############################################
 
-    sort_range_post_debug_2:
+    sort_bottom_up_post_debug_2:
 
             lw      $a0, 28($sp)                    # a0: &unsorted
             lw      $a1, 24($sp)                    # a1: recursion_level
@@ -608,7 +649,7 @@ sort_range:
             lw      $t0, 40($sp)
             sw      $t0, 0($sp)                     # tmp array
 
-            jal     sort_range                      # call sort_range(unsorted, start, middle)
+            jal     sort_bottom_up                      # call sort_bottom_up(unsorted, start, middle)
             
             lw      $a0, 28($sp)
             lw      $a1, 24($sp)
@@ -619,11 +660,11 @@ sort_range:
             lw      $t0, 40($sp)                    # tmp array
             sw      $t0, 0($sp)
 
-            jal     sort_range                      # call sort_range(unsorted, middle, end)
+            jal     sort_bottom_up                      # call sort_bottom_up(unsorted, middle, end)
     
     ###############################################
     # DEBUG
-            beq     $s0, 1, sort_range_post_debug_3 # skip if flag not set
+            beq     $s0, 1, sort_bottom_up_post_debug_3 # skip if flag not set
 
             lw      $a0, 24($sp)                    # a0: recursion_level
             jal     print_tabs                      # call print_tabs(recursion_level)
@@ -658,7 +699,7 @@ sort_range:
             syscall
     ###############################################
 
-    sort_range_post_debug_3:   
+    sort_bottom_up_post_debug_3:   
             lw      $a0, 28($sp)                    # a0: local &unsorted
             lw      $a1, 20($sp)                    # a1: start
             lw      $a2, 12($sp)                    # a2: middle
@@ -671,7 +712,7 @@ sort_range:
 
     ###############################################
     # DEBUG        
-            beq     $s0, 1, sort_range_post_debug_4 # skip if flag not set
+            beq     $s0, 1, sort_bottom_up_post_debug_4 # skip if flag not set
 
             lw      $a0, 24($sp)                    # a0: recursion_level
             jal     print_tabs                      # call print_tabs(recursion_level)
@@ -688,10 +729,10 @@ sort_range:
             syscall
     ###############################################
 
-    sort_range_post_debug_4:
-            b       sort_range_epilogue
+    sort_bottom_up_post_debug_4:
+            b       sort_bottom_up_epilogue
 
-    sort_range_epilogue:
+    sort_bottom_up_epilogue:
 
             lw      $ra, 32($sp)
             lw      $fp, 36($sp)
