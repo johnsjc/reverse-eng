@@ -1,8 +1,17 @@
 #!/bin/bash
 # Driver program for merge.s
-# Creates a list of N numbers in the range (1, N) inclusive in a random order.
-# Runs merge.s program using spim with this list of numbers as the input.
+# Creates a temporary file containing a list of n numbers in the range (1, n) inclusive in a random order.
+# The first line in the file is the quantity of numbers in the input.
+# Runs merge.s program using spim with this file as the input.
 # Usage: ./merge.sh <n>
+#
+# e.g.
+# 5 (number of items to follow)
+# 1 (one line per number)
+# 3
+# 4
+# 5
+# 2
 
 echo $1 > nums
 
