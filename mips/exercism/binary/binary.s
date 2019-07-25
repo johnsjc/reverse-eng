@@ -5,18 +5,18 @@ binary_convert:
 # Converts a binary number to the decimal equivalent.
 #
 # Arguments:
-# 	a0:	Address of a string representing a binary value.
+# 	a0:		Address of a string representing a binary value.
 #	e.g.	"1001"		
 #
 # Returns:
-#	v0:	A 4-byte integer representing  the decimal equivalent
+#	v0:		A 4-byte integer representing  the decimal equivalent
 #	e.g. 	9
 #
 # Registers:
-# 	s0:	address of the string
-#	s1:	loop counter
-#	s2:	accumulator
-#	s3:	value of the current character
+# 	s0:		address of the string
+#	s1:		loop counter
+#	s2:		accumulator
+#	s3:		value of the current character
 #
 	binary_convert_prologue:
 		subu	$sp, $sp, 24								# create stack frame of 24 bytes
@@ -68,77 +68,77 @@ string_length:
 # Returns the length of a given null-terminated string
 #
 # Arguments:
-#		a0:	Address of a null-terminated string
+#	a0:		Address of a null-terminated string
 #
 # Returns:
-#		v0:	The length of the string (word)
+#	v0:		The length of the string (word)
 #
 # Registers:
-#		s0:	address of the current character
-#		s1:	value of the current character
+#	s0:		address of the current character
+#	s1:		value of the current character
 #
 	string_length_prologue:
-		subu		$sp, $sp, 24				            		# we don't call another function
-		sw	    $fp, 20($sp)				            		# so no need to save $ra.
-		addu		$fp, $sp, 24
+		subu	$sp, $sp, 24				           		# we don't call another function
+		sw	    $fp, 20($sp)				            	# so no need to save $ra.
+		addu	$fp, $sp, 24
 		
 	string_length_init:	
 		sw	    $s0, 12($sp)			                	# save the registers to the stack
 		sw	    $s1, 8($sp)
 		
-		li	    $v0, 0					                		# v0: length = 0 (return value)
-		move		$s0, $a0				    		            # s0: string address (first char)
+		li	    $v0, 0					                	# v0: length = 0 (return value)
+		move	$s0, $a0				    		        # s0: string address (first char)
 		
 	string_length_loop:
-		lb	    $s1, ($s0)				      	          # s1: value of the current character
-		beq	    $s1, $zero, string_length_finish    # if null, break
-		addi		$v0, $v0, 1				                	# increment length
-		addi		$s0, $s0, 1					                # increment address to point to next character
+		lb	    $s1, ($s0)				      	          	# s1: value of the current character
+		beq	    $s1, $zero, string_length_finish    		# if null, break
+		addi	$v0, $v0, 1				                	# increment length
+		addi	$s0, $s0, 1					                # increment address to point to next character
 		b 	    string_length_loop
 		
 	string_length_finish:
-		lw	    $s0, 12($sp)						            # restore registers
+		lw	    $s0, 12($sp)						        # restore registers
 		lw	    $s1, 8($sp)
 		
 	string_length_epilogue:
 		lw	    $fp, 20($sp)
-		addu		$sp, $sp, 24
+		addu	$sp, $sp, 24
 		jr	    $ra
 		
 powers_of_two:
 # Returns the nth power of two.
 #
 # Arguments:
-#		a0:	n
+#	a0:		n
 #
 # Returns:
-#		v0:	The nth power of two (word)
-#		e.g. if n = 3, the function will return 8.
+# 	v0:		The nth power of two (word)
+#			e.g. if n = 3, the function will return 8.
 #
 # Registers:
-#		s0:	loop counter
+#	s0:		loop counter
 #
 	powers_of_two_prologue:
-		subu		$sp, $sp, 24				            		# we don't call another function
-		sw	    $fp, 20($sp)				            		# so no need to save $ra.
-		addu		$fp, $sp, 24
+		subu	$sp, $sp, 24				            	# we don't call another function
+		sw	    $fp, 20($sp)				            	# so no need to save $ra.
+		addu	$fp, $sp, 24
 		
 	powers_of_two_init:
-		sw	    $s0, 12($sp)						            # save the register s0 to the stack		
+		sw	    $s0, 12($sp)						        # save the register s0 to the stack		
 		
-		li	    $s0, 0							                # s0: loop counter
-		li	    $v0, 1							                # v0: 2^0
+		li	    $s0, 0							            # s0: loop counter
+		li	    $v0, 1							            # v0: 2^0
 		
 	powers_of_two_loop:
-		beq	    $s0, $a0, powers_of_two_finish		  # loop n times
+		beq	    $s0, $a0, powers_of_two_finish		  		# loop n times
 		mul	    $v0, $v0, 2				                	# v0 = v0 * 2
-		addi		$s0, $s0, 1				                	# increment the counter
-		b	    	powers_of_two_loop		
+		addi	$s0, $s0, 1				                	# increment the counter
+		b	    powers_of_two_loop		
 
 	powers_of_two_finish:
-		lw	    $s0, 12($sp)				            		# restore the register s0
+		lw	    $s0, 12($sp)				            	# restore the register s0
 		
 	powers_of_two_epilogue:
 		lw	    $fp, 20($sp)
-		addu		$sp, $sp, 24
+		addu	$sp, $sp, 24
 		jr	    $ra
