@@ -6,36 +6,36 @@ binary_convert:
 #
 # Arguments:
 # 	a0:	Address of a string representing a binary value.
-#		e.g. "1001"		
+#	e.g. "1001"		
 #
 # Returns:
-#		v0:	A 4-byte integer representing  the decimal equivalent
-#		e.g. 9
+#	v0:	A 4-byte integer representing  the decimal equivalent
+#	e.g. 9
 #
 # Registers:
-#		s0:	address of the string
-#		s1:	loop counter
-#		s2:	accumulator
-#		s3:	value of the current character
+# 	s0:	address of the string
+#	s1:	loop counter
+#	s2:	accumulator
+#	s3:	value of the current character
 #
 	binary_convert_prologue:
-		subu		$sp, $sp, 24	                        	# create stack frame of 24 bytes
-		sw	    $fp, 20($sp)		
-		sw	    $ra, 16($sp)
+		subu		$sp, $sp, 24	                        # create stack frame of 24 bytes
+		sw	    	$fp, 20($sp)		
+		sw	    	$ra, 16($sp)
 		addu		$fp, $sp, 24
 		
 	binary_convert_init:	
-		sw	    $s0, 12($sp)	                        	# save registers
-		sw	    $s1, 8($sp)
-		sw	    $s2, 4($sp)
-		sw	    $s3, 0($sp)
+		sw	    	$s0, 12($sp)	                        # save registers
+		sw	    	$s1, 8($sp)
+		sw	    	$s2, 4($sp)
+		sw	    	$s3, 0($sp)
 		
-		move		$s0, $a0			                        	# s0: string address
+		move		$s0, $a0			        # s0: string address
 	
-		jal	    string_length		
-		move		$s1, $v0			                        	# s1: string length (loop counter i)
+		jal	    	string_length		
+		move		$s1, $v0			        # s1: string length (loop counter i)
 		
-		li	    $s2, 0				                        	# s2: accumulator
+		li	    	$s2, 0				        # s2: accumulator
 		
 	binary_convert_loop:
 		beq	    $s1, $zero, binary_convert_finish
