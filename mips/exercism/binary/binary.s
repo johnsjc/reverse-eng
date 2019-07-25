@@ -6,11 +6,11 @@ binary_convert:
 #
 # Arguments:
 # 	a0:	Address of a string representing a binary value.
-#	e.g. "1001"		
+#	e.g.	"1001"		
 #
 # Returns:
 #	v0:	A 4-byte integer representing  the decimal equivalent
-#	e.g. 9
+#	e.g. 	9
 #
 # Registers:
 # 	s0:	address of the string
