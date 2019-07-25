@@ -75,5 +75,5 @@ exit_fail:
         li      $v0, 17                 # 17 is exit with error
         syscall
 
-# # Include your implementation here if you wish to run this from the MARS GUI.
-#.include "impl.s"
+# Include your implementation here if you wish to run this from the MARS GUI.
+# .include "impl.s"
