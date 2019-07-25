@@ -136,7 +136,7 @@ powers_of_two:
 		b	    	powers_of_two_loop		
 
 	powers_of_two_finish:
-		lw	    $s0, 12($sp)				            	# restore the register s0
+		lw	    $s0, 12($sp)				            		# restore the register s0
 		
 	powers_of_two_epilogue:
 		lw	    $fp, 20($sp)
