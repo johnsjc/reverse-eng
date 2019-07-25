@@ -76,4 +76,4 @@ exit_fail:
         syscall
 
 # # Include your implementation here if you wish to run this from the MARS GUI.
-#.include "impl.mips"
+#.include "impl.s"
