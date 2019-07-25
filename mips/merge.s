@@ -7,44 +7,65 @@
 #
 # Example run:
 #
-# $ ./merge.sh 3
+# $ ./merge.sh 5
 #
-# Input: [2, 1, 3]
+# Input: [3, 2, 1, 4, 5]
 #
-# Sorting using a bottom up (recursive) algorithm...
+# Sorting using a recursive algorithm...
 #
-# [DEBUG] Sort: [2, 1, 3]
-# [DEBUG] Split: [2] | [1, 3]
-#         [DEBUG] Sort: [2]
-#         [DEBUG] Sort: [1, 3]
-#         [DEBUG] Split: [1] | [3]
-#                 [DEBUG] Sort: [1]
+# [DEBUG] Sort: [3, 2, 1, 4, 5]
+# [DEBUG] Split: [3, 2] | [1, 4, 5]
+#         [DEBUG] Sort: [3, 2]
+#         [DEBUG] Split: [3] | [2]
 #                 [DEBUG] Sort: [3]
+#                 [DEBUG] Sort: [2]
+#         [DEBUG] Sorted left half: [3]
+#         [DEBUG] Sorted right half: [2]
+#         [DEBUG] Merged result: [2, 3]
+#         [DEBUG] Sort: [1, 4, 5]
+#         [DEBUG] Split: [1] | [4, 5]
+#                 [DEBUG] Sort: [1]
+#                 [DEBUG] Sort: [4, 5]
+#                 [DEBUG] Split: [4] | [5]
+#                         [DEBUG] Sort: [4]
+#                         [DEBUG] Sort: [5]
+#                 [DEBUG] Sorted left half: [4]
+#                 [DEBUG] Sorted right half: [5]
+#                 [DEBUG] Merged result: [4, 5]
 #         [DEBUG] Sorted left half: [1]
-#         [DEBUG] Sorted right half: [3]
-#         [DEBUG] Merged result: [2, 1, 3]
-# [DEBUG] Sorted left half: [2]
-# [DEBUG] Sorted right half: [1, 3]
-# [DEBUG] Merged result: [1, 2, 3]
+#         [DEBUG] Sorted right half: [4, 5]
+#         [DEBUG] Merged result: [1, 4, 5]
+# [DEBUG] Sorted left half: [2, 3]
+# [DEBUG] Sorted right half: [1, 4, 5]
+# [DEBUG] Merged result: [1, 2, 3, 4, 5]
 #
-# Sorted: [1, 2, 3]
+# Sorted: [1, 2, 3, 4, 5]
 #
-#################################
+####################################
 #
-# Sorting using a top down (iterative) algorithm...
+# Sorting using an iterative algorithm...
 #
 # [DEBUG] Size: 1
 # [DEBUG] Split: [1] | [2]
 # [DEBUG] Merged result: [1, 2]
-# [DEBUG] Split: [3]
-# [DEBUG] Merged result: [3]
+# [DEBUG] Split: [3] | [4]
+# [DEBUG] Merged result: [3, 4]
+# [DEBUG] Split: [5]
+# [DEBUG] Merged result: [5]
 #
 # [DEBUG] Size: 2
-# [DEBUG] Split: [1, 2] | [3]
-# [DEBUG] Merged result: [1, 2, 3]
+# [DEBUG] Split: [1, 2] | [3, 4]
+# [DEBUG] Merged result: [1, 2, 3, 4]
+# [DEBUG] Split: [5]
+# [DEBUG] Merged result: [5]
 #
-# Sorted: [1, 2, 3]
+# [DEBUG] Size: 4
+# [DEBUG] Split: [1, 2, 3, 4] | [5]
+# [DEBUG] Merged result: [1, 2, 3, 4, 5]
 #
+# Sorted: [1, 2, 3, 4, 5]
+#
+####################################
 #
 # merge.sh creates a file in the following format:
 # 3         # number of integers to follow
