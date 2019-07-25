@@ -19,50 +19,50 @@ binary_convert:
 #	s3:	value of the current character
 #
 	binary_convert_prologue:
-		subu		$sp, $sp, 24		# create stack frame of 24 bytes
+		subu		$sp, $sp, 24					# create stack frame of 24 bytes
 		sw		$fp, 20($sp)
 		sw		$ra, 16($sp)
 		addu		$fp, $sp, 24
 		
 	binary_convert_init:	
-		sw		$s0, 12($sp)            # save registers
+		sw		$s0, 12($sp)            			# save registers
 		sw		$s1, 8($sp)
 		sw		$s2, 4($sp)
 		sw		$s3, 0($sp)
 		
-		move		$s0, $a0                # s0: string address
+		move		$s0, $a0                			# s0: string address
 	
 		jal		string_length		
-		move		$s1, $v0		# s1: string length (loop counter i)
+		move		$s1, $v0					# s1: string length (loop counter i)
 		
-		li		$s2, 0			# s2: accumulator
+		li		$s2, 0						# s2: accumulator
 		
 	binary_convert_loop:
 		beq	    	$s1, $zero, binary_convert_finish
-		lb	    	$s3, ($s0)			# s3: value of the current byte
-		beq	    	$s3, 0x30, binary_convert_loop_continue	# if the char is a 0, skip
-		subi		$a0, $s1, 1					        	# subtract 1 since binary powers of two start at 0
-		jal	    	powers_of_two				        	# get the power of two for the current position
-		add	    	$s2, $s2, $v0					        # accumulate the result in s2
+		lb	    	$s3, ($s0)					# s3: value of the current byte
+		beq	    	$s3, 0x30, binary_convert_loop_continue		# if the char is a 0, skip
+		subi		$a0, $s1, 1					# subtract 1 since binary powers of two start at 0
+		jal	    	powers_of_two				        # get the power of two for the current position
+		add	    	$s2, $s2, $v0					# accumulate the result in s2
 		
 	binary_convert_loop_continue:
-		addi    $s0, $s0, 1		                        # advance the string pointer one byte
-		subi	$s1, $s1, 1		                        # i--
-		b	    binary_convert_loop
+		addi    	$s0, $s0, 1		                        # advance the string pointer one byte
+		subi		$s1, $s1, 1		                        # i--
+		b	    	binary_convert_loop
 		
 	binary_convert_finish:
-		move	$v0, $s2		                        # return the decimal representation
+		move		$v0, $s2		                        # return the decimal representation
 		
-		lw	    $s0, 12($sp)			                # restore registers
-		lw	    $s1, 8($sp)
-		lw	    $s2, 4($sp)
-		lw	    $s3, 0($sp)
+		lw	    	$s0, 12($sp)			                # restore registers
+		lw	    	$s1, 8($sp)
+		lw	    	$s2, 4($sp)
+		lw	    	$s3, 0($sp)
 		
 	binary_convert_epilogue:		
-		lw	    $fp, 20($sp)
-		lw	    $ra, 16($sp)
-		addu	$sp, $sp, 24
-		jr	    $ra			
+		lw	    	$fp, 20($sp)
+		lw	    	$ra, 16($sp)
+		addu		$sp, $sp, 24
+		jr	    	$ra			
 	
 string_length:
 # Returns the length of a given null-terminated string
