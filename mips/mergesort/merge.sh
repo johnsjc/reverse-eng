@@ -19,4 +19,4 @@ declare -i x=1
 while [ $x -le $1 ]; do
     echo $x
     ((x++))
-done | sort -R >> nums; cat nums | java -jar ~/bin/mars.jar mergesort.s; rm nums
+done | sort -R >> nums; cat nums | java -jar ~/bin/mars.jar main.s; rm nums
