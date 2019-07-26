@@ -1,5 +1,5 @@
 #!/bin/bash
-# Driver program for merge.s
+# Driver program for mergesort.s
 # Creates a temporary file containing a list of n numbers in the range (1, n) inclusive in a random order.
 # The first line in the file is the quantity of numbers in the input.
 # Runs merge.s program using spim with this file as the input.
