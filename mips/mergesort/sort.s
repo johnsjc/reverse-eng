@@ -84,7 +84,7 @@ sort.iterative_sort:
 ## end of iterative_sort
 
 
-## initialize_tmp : void
+## __initialize_tmp : void
 ##
 ## Initializes the temp array.
 ## That is, sets it equal to the following list:
