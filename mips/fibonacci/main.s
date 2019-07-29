@@ -126,8 +126,6 @@ main:
 		syscall
 ## end of main
 
-
-
 	
 .include "fib.s"
 .include "debug.s"
