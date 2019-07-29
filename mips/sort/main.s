@@ -77,14 +77,14 @@
 ##
 ## 		[DEBUG] Split: [5]
 ## 		[DEBUG] Merged result: [5]
-
+##
 ## [DEBUG] Size: 2
 ## 		[DEBUG] Split: [2, 4] | [1, 3]
 ## 		[DEBUG] Merged result: [1, 2, 3, 4]
 ##
 ## 		[DEBUG] Split: [5]
 ## 		[DEBUG] Merged result: [5]
-
+##
 ## [DEBUG] Size: 4 
 ## 		[DEBUG] Split: [1, 2, 3, 4] | [5]
 ## 		[DEBUG] Merged result: [1, 2, 3, 4, 5]
