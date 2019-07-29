@@ -9,7 +9,8 @@
 
 .data
 
-tmp:			.space 8
+tmp:			.space 8		# space for temp array for merge operations
+								# { n_elements, *elements }										
 
 .text
 
@@ -101,8 +102,7 @@ sort.iterative_sort:
 ##
 __initialize_tmp:
 
-		subu		$sp, $sp, 32
-		
+		subu		$sp, $sp, 32		
 		sw			$s0, 28($sp)
 		
 		la			$s0, tmp								# s0: address of tmp
@@ -113,10 +113,8 @@ __initialize_tmp:
 		syscall
 		sw			$v0, 4($s0)
 		
-		lw			$s0, 28($sp)
-		
-		addu		$sp, $sp, 32
-		
+		lw			$s0, 28($sp)		
+		addu		$sp, $sp, 32		
 		jr			$ra
 ## end of __initialize_tmp
 
@@ -301,10 +299,10 @@ __do_iterative_sort:
 		lw			$s1, 52($sp)
 		
 		lw			$ra, 60($sp)
-		addu		$sp, $sp, 64
-			
+		addu		$sp, $sp, 64			
 		jr $ra
 ## end of __do_iterative_sort
+
 
 ## __merge : void
 ##
@@ -319,6 +317,14 @@ __do_iterative_sort:
 ##		a2:		middle index
 ##		a3:		end index
 ##
+## Register usage:
+##		s0:		i (left index)
+##		s1:		j (right index)
+##		s2:		k (tmp index)
+##		s3:		scratch space
+##		s4:		list.elements[i], *list.elements[i]
+##		s5:		list.elements[j], *list.elements[j]
+##		a1:		tmp.elements[k]
 __merge:
 
 		subu    	$sp, $sp, 64
@@ -330,7 +336,6 @@ __merge:
 		sw			$s3, 44($sp)
 		sw			$s4, 40($sp)
 		sw			$s5, 36($sp)
-		sw			$s6, 32($sp)
 		
 		sw			$a0, 24($sp)							# local var: list address
 		sw			$a1, 20($sp)							# local var: start
@@ -342,118 +347,85 @@ __merge:
 		move		$s2, $s0								# k = start (tmp index)
 		
     m_loop:
-            
+    
+    	lw			$s3, 24($sp)							# s3: list.elements
+    	lw			$s3, 4($s3)
+    	
+    	mul			$s4, $s0, 4								# s4: list.elements[i]
+    	addu		$s4, $s4, $s3							
+    	
+    	mul			$s5, $s1, 4								# s5: list.elements[j] 
+    	addu		$s5, $s5, $s3							   	
+  
+		la			$a1, tmp								# a1: tmp.elements[k]
+		lw			$a1, 4($a1)
+		mul			$s3, $s2, 4
+		addu		$a1, $a1, $s3									
+		    
         lw      	$s3, 16($sp)                            # s3: middle
         beq     	$s0, $s3, m_copy_b_to_a             	# if list a is exhausted, copy rest of list b to a
             
         lw      	$s3, 12($sp)                            # s3: end
-        beq     	$s1, $s3, m_copy_a_to_b             	# if list b is exhaused, copy rest of list a to b         
-    
-    m_compare:
-		lw      	$s3, 24($sp)                           	# s3: list
-    	lw      	$s3, 4($s3)                             # s3: list.elements
-        mul     	$s4, $s0, 4                             # s4: offset i into list.elements
-        addu    	$s3, $s3, $s4                           # s3: &list.elements[i]
-        lw      	$s5, ($s3)                              # s5: list.elements[i]
-
-       	lw      	$s3, 24($sp)							# s3: list
-       	lw      	$s3, 4($s3)								# s3: list.elements
-        mul     	$s4, $s1, 4                             # s4: offset j into unsorted.elements
-        addu    	$s3, $s3, $s4                           # s3: &list.elements[j]
-        lw      	$s6, ($s3)                              # s6: list.elements[j]
-
-        la      	$s3, tmp                            	# s3: tmp
-        lw      	$s3, 4($s3)                             # s3: tmp.elements
-        mul     	$s4, $s2, 4                             # s4: offset k into tmp.elements
-        addu    	$s3, $s3, $s4                           # s3: &tmp.elements[k]
-            
-        bgt     	$s5, $s6, m_list_b_smaller              
-    
+        beq     	$s1, $s3, m_copy_a_to_b             	# if list b is exhaused, copy rest of list a to b
+        
+        lw			$s4, ($s4)								# s4: *list.elements[i]
+        lw			$s5, ($s5)								# s5: *list.elements[j]
+        
+        bgt     	$s4, $s5, m_list_b_smaller 
+        
     m_list_a_smaller:
             
-        sw      	$s5, ($s3)                              # tmp.elements[k] = a.elements[i]
-
+        sw      	$s4, ($a1)                              # tmp.elements[k] = list.elements[i]
         add     	$s0, $s0, 1                             # i++
         add     	$s2, $s2, 1                             # k++
-
         b      		m_loop
 
     m_list_b_smaller:
 
-        sw      	$s6, ($s3)                              # tmp.elements[k] = b.elements[j]
-
+        sw      	$s5, ($a1)                              # tmp.elements[k] = list.elements[j]
         add     	$s1, $s1, 1                             # j++
         add     	$s2, $s2, 1                             # k++
-
         b      		m_loop
-
-    m_copy_a_to_b:
-            
-        lw      	$s3, 16($sp)                            # s3: middle
-        beq     	$s0, $s3, m_loop_end					# while a still has elements to copy
-            
-        lw      	$s3, 24($sp)                            # s3: list
-        lw      	$s3, 4($s3)                             # s3: list.elements
-        mul     	$s4, $s0, 4                             # s4: offset i into list.elements
-        addu    	$s3, $s3, $s4                           # s3: &list.elements[i]
-        lw      	$s5, ($s3)                              # s5: list.elements[i]
-            
-        la      	$s3, tmp                            	# s3: tmp
-        lw      	$s3, 4($s3)                             # s3: tmp.elements
-        mul     	$s4, $s2, 4                             # s4: offset k into tmp.elements
-        addu    	$s3, $s3, $s4                           # s3: &tmp.elements[k]
-        sw      	$s5, ($s3)                              # tmp.elements[k] = list.elements[i]
-        add     	$s0, $s0, 1                             # i++
-        add     	$s2, $s2, 1                             # k++
-
-        b       	m_copy_a_to_b
         
+    m_copy_a_to_b:
+    
+    	move		$a0, $s4								# 1st arg: list.elements[i]
+    														# 2nd arg: tmp.elements[k]    													
+    	lw			$s3, 16($sp)							# 3rd arg: n_bytes (middle - start) * 4
+    	sub			$a2, $s3, $s0
+    	mul			$a2, $a2, 4
+		jal			util.memcpy								# memcpy(list[j], tmp[k], n_bytes)		
+		b			m_loop_end  
+		
 	m_copy_b_to_a:
-            
-        lw      	$s3, 12($sp)                           	# s3: end
-        beq     	$s1, $s3, m_loop_end					# while b still has elements to copy
-            
-        lw      	$s3, 24($sp)                            # s3: list
-        lw      	$s3, 4($s3)                             # s3: list.elements
-        mul     	$s4, $s1, 4                             # s4: offset j into list.elements
-        addu    	$s3, $s3, $s4                           # s3: &list.elements[j]
-        lw      	$s6, ($s3)                              # s6: list.elements[j]
-            
-        la      	$s3, tmp                            	# s3: tmp
-        lw      	$s3, 4($s3)                             # s3: tmp.elements
-        mul     	$s4, $s2, 4                             # s4: offset k into tmp.elements
-        addu    	$s3, $s3, $s4                           # s3: &tmp.elements[k]
-        sw      	$s6, ($s3)                              # stmp.elements[k] = list.elements[j]
-        add     	$s1, $s1, 1                             # j++
-        add     	$s2, $s2, 1                             # k++
-
-        b       	m_copy_b_to_a
-
-	m_loop_end:
+    
+    	move		$a0, $s5								# 1st arg: list.elements[j]
+    														# 2nd arg: tmp.elements[k]    													
+    	lw			$s3, 12($sp)							# 3rd arg: n_bytes (end - middle) * 4
+    	sub			$a2, $s3, $s1
+    	mul			$a2, $a2, 4
+		jal			util.memcpy								# memcpy(list[j], tmp[k], n_bytes)		
+		b			m_loop_end
+    	
+	m_loop_end:												# done; copy tmp[start:end] to list[start:end]
 
        	lw      	$s0, 20($sp)                            # s0: start
-        lw      	$s1, 12($sp)                            # s1: end            
+        lw      	$s1, 12($sp)                            # s1: end
+        
+        mul			$s3, $s0, 4								# s3: offset i
+        
+        la			$a0, tmp								# 1st arg: tmp.elements[i]
+        lw			$a0, 4($a0)
+        addu		$a0, $a0, $s3
 
-    m_copy_loop:											# copy the tmp array to list
-
- 		beq     	$s0, $s1, __merge_end					# while we have elements to copy
-                
-		la      	$s2, tmp                        		# s2: tmp
-        lw      	$s2, 4($s2)                         	# s2: tmp.elements
-        mul     	$s3, $s0, 4                         	# s3: offset i
-        addu    	$s2, $s2, $s3                       	# s2: &tmp.elements[i]
-        lw      	$s4, ($s2)                          	# s4: tmp.elements[i]
-
-        lw      	$s2, 24($sp)                       		# s2: list
-        lw      	$s2, 4($s2)                         	# s2: list.elements
-        mul     	$s3, $s0, 4                         	# s3: offset i
-        addu    	$s2, $s2, $s3                       	# s2: &list.elements[i]
-        sw      	$s4, ($s2)                          	# list.elements[i] = tmp[i]
-
-        add     	$s0, $s0, 1                         	# i++
-        b       	m_copy_loop 
-
-	__merge_end:
+        lw			$a1, 24($sp)							# 2nd arg: list.elements[i]
+        lw			$a1, 4($a1)
+        addu		$a1, $a1, $s3
+        
+        sub			$a2, $s1, $s0							# 3rd arg: n_bytes 
+        mul			$a2, $a2, 4								# = (end - start) * 4
+        
+        jal			util.memcpy          					# memcpy(tmp, list, n_bytes)
 			
 		lw			$s0, 56($sp)
 		lw			$s1, 52($sp)
@@ -461,8 +433,7 @@ __merge:
 		lw			$s3, 44($sp)
 		lw			$s4, 40($sp)
 		lw			$s5, 36($sp)
-		lw			$s6, 32($sp)
 
         lw      	$ra, 60($sp)
         addu    	$sp, $sp, 64 
-        jr      	$ra	
+        jr      	$ra

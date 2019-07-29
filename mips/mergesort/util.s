@@ -5,10 +5,10 @@
 ##
 
 .globl util.create_list
-.globl util.copy_list
 .globl util.print_list
 .globl util.print_list_range
 .globl util.print_char_n_times
+.globl util.memcpy
 
 .text
 
@@ -52,8 +52,7 @@ util.create_list:
 		lw			$s1, 20($sp)
 		
 		lw			$ra, 28($sp)
-		addu		$sp, $sp, 32
-		
+		addu		$sp, $sp, 32		
 		jr			$ra
 ## end of create_list
 
@@ -66,42 +65,19 @@ util.create_list:
 ##		a0:		address of source list
 ##		a1:		address of destination list
 ##
-## Register usage:
-##		s0:		number of elements
-##		s1:		address of the result list
-##
 util.copy_list:
 
 		subu		$sp, $sp, 32
 		sw			$ra, 28($sp)
 		
-		sw			$s0, 24($sp)
-		sw			$s1, 20($sp)
-		sw			$s2, 16($sp)
-		sw			$s3, 12($sp)
+		lw			$a2, 0($a0)								# 3rd arg: n_elements * 4 bytes
+		mul			$a2, $a2, 4	
 		
-		lw			$s0, 0($a0)								# s0: src.n_elements
-		lw			$s1, 4($a0)								# s1: src.elements
-		lw			$s2, 4($a1)								# s2: dst.elements
-		
-	c_loop:
-	
-		beqz		$s0, c_loop_end							# while there are elements to copy
-		lw			$s3, ($s1)								# s3: src.elements[i]
-		sw			$s3, ($s2)								# dst.elements[i] = src.elements[i]
-		
-		addu		$s1, $s1, 4								# increment src and dst pointers
-		addu		$s2, $s2, 4
-		subi		$s0, $s0, 1								# i--		
-		b			c_loop
-		
-	c_loop_end:		
-		
-		lw			$s0, 24($sp)
-		lw			$s1, 20($sp)
-		lw			$s2, 16($sp)
-		lw			$s3, 12($sp)
-		
+		lw			$a0, 4($a0)								# 1st arg: &src.elements
+		lw			$a1, 4($a1)								# 2nd arg: &dst.elements
+			
+		jal			util.memcpy								# memcpy(src, dst, n_bytes)
+				
 		lw			$ra, 28($sp)
 		addu		$sp, $sp, 32
 		jr			$ra
@@ -148,7 +124,7 @@ util.print_list:
 ##
 util.print_list_range:
 
-		subu		$sp, $sp, 32								# set up stack frame
+		subu		$sp, $sp, 32								
 		sw			$ra, 28($sp)
 		
 		sw			$s0, 24($sp)
@@ -193,12 +169,11 @@ util.print_list_range:
 		li			$v0, 11
 		syscall		
 		
-		lw 			$s0, 24($sp)								# restore registers
+		lw 			$s0, 24($sp)								
 		lw			$s1, 20($sp)
 		
-		lw			$ra, 28($sp)								# tear down stack frame
-		addu		$sp, $sp, 32
-		
+		lw			$ra, 28($sp)								
+		addu		$sp, $sp, 32		
 		jr			$ra
 ## end of print_list
 
@@ -220,6 +195,43 @@ util.print_char_n_times:
 		b			pcnt_loop
 	
 	pcnt_loop_end:
-	
+		
 		jr			$ra
 ## end of print_char_n_times
+
+
+## memcpy : void
+##
+## Copies the contents of memory from one location to another
+##
+## Arguments:
+##		a0:		source address
+##		a1:		destination address
+##		a2:		n_bytes
+##
+## Register usage:
+##		s0:		byte being copied
+##
+util.memcpy:
+
+		subu		$sp, $sp, 32
+		sw			$s0, 28($sp)
+		
+	c_loop:			
+												
+		beqz		$a2, c_loop_end								# while there are still bytes to copy
+		lb			$s0, ($a0)									# copy the byte from src to dst
+		sb			$s0, ($a1)
+		
+		addu		$a0, $a0, 1									# increase src and dst pointers by one byte
+		addu		$a1, $a1, 1
+		
+		sub			$a2, $a2, 1									# n_bytes--
+		b			c_loop
+		
+	c_loop_end:
+	
+		lw			$s0, 28($sp)
+		addu		$sp, $sp, 32
+		jr			$ra
+## end of memcpy
