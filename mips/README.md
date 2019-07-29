@@ -47,4 +47,4 @@ The first six bits of each instruction are the `op` field.
     * Resume execution before the function call with `jr $ra`.
 
 
-(Reference Card)[http://www.cburch.com/cs/330/reading/mips-ref.pdf]
+[Reference Card](http://www.cburch.com/cs/330/reading/mips-ref.pdf)
