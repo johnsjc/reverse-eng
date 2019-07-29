@@ -269,7 +269,7 @@ debug.recursive_2:
 		lw			$a2, 40($sp)
 		jal			util.print_list_range
 		
-		la      	$a0, debug_delim                  # print  " | "
+		la      	$a0, debug_delim                        # print  " | "
         li      	$v0, 4
         syscall
 				
