@@ -13,8 +13,9 @@
 .text
 
 ## create_list
+## NOTE: This function is unused in this program.
 ##
-## Creates an empty list of n elements
+## Creates a dynamic list on the heap n elements in size.
 ## e.g. if n is 3, the function returns a heap address to the following list:
 ## { 3, *elements } where elements = [0, 0, 0]
 ##
