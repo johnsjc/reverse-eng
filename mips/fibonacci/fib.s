@@ -29,13 +29,13 @@ fib.recursion:
 		
 	__r_n_zero:
 	
-		li			$v0, 0
+		li			$v0, 0                          # return 0 if n = 0
 		jr			$ra
 		
 	__r_n_nonzero:
 
 		bgt			$a0, 1, __r_check_memoized		# return 1 if n < 2
-		li			$v0, 1							# don't create a stack frame
+		li			$v0, 1							
 		jr			$ra
 	
 	__r_check_memoized:
@@ -135,13 +135,13 @@ __do_tail_recursion:
 		
 	__tr_n_zero:
 
-		li			$v0, 0
+		li			$v0, 0                          # return 0 if n = 0
 		jr			$ra
 
 	__tr_n_nonzero:
 
 		bgt			$a0, 1, __tr					# return b if n < 2
-		move		$v0, $a2						# don't create a stack frame
+		move		$v0, $a2						
 		jr			$ra
 		
 	__tr:
@@ -178,7 +178,7 @@ fib.iteration:
 		
 	__i_n_zero:
 	
-		li			$v0, 0							# return 0 if n == 0
+		li			$v0, 0							# return 0 if n = 0
 		jr			$ra
 				
 	__i_n_nonzero:
