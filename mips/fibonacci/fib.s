@@ -135,7 +135,7 @@ __do_tail_recursion:
 		
 	__tr_n_zero:
 
-		li			$v0, 0                          # return 0 if n = 0
+		move        $v0, $a1                        # return a if n = 0
 		jr			$ra
 
 	__tr_n_nonzero:
