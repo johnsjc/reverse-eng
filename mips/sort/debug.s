@@ -291,12 +291,19 @@ debug.recursive_2:
 ## recursive_3
 ##
 ## Prints the two sorted halves of the list
-## e.g. [DEBUG] Sorted left half: [3]
-## 		[DEBUG] Sorted right half: [2]
+## e.g. [DEBUG] Sorted left half: [1, 3]
+## 		[DEBUG] Sorted right half: [2, 5]
 debug.recursive_3:
 
         subu		$sp, $sp, 32
 		sw			$ra, 28($sp)
+		sw			$s0, 24($sp)
+		sw			$s1, 20($sp)
+		
+		lw			$s0, 52($sp)							# s0: start
+		lw			$s1, 40($sp)							# s1: middle		
+		sub			$s0, $s1, $s0
+		beq			$s0, 1, __r3_skip_left					# skip if list is only one element
 
 		li			$a0, 0x9								# indent according to recursion depth
 		lw			$a1, 44($sp)							# ascii 0x9 is a tab character
@@ -307,13 +314,19 @@ debug.recursive_3:
         syscall
 
         lw      	$a0, 56($sp)                            # print list[start:middle]
-        lw      	$a1, 52($sp)                            
-        lw      	$a2, 40($sp)                            
+        lw	     	$a1, 52($sp)                            
+        lw     		$a2, 40($sp)                            
         jal     	util.print_list_range                        
 
         li      	$a0, 0xA                                # print a new line
         li      	$v0, 11
         syscall
+        
+    __r3_skip_left:
+    
+    	lw			$s0, 48($sp)							# s0: end
+    	sub			$s0, $s0, $s1
+    	beq			$s0, 1, __r3_skip_right					# skip if list is only one element
         
         li			$a0, 0x9								# indent according to recursion depth
 		lw			$a1, 44($sp)							# ascii 0x9 is a tab character
@@ -330,8 +343,12 @@ debug.recursive_3:
         
         li      	$a0, 0xA                                # print a new line
         li      	$v0, 11
-        syscall                   
+        syscall         
+        
+    __r3_skip_right:          
 
+		lw			$s0, 24($sp)
+		lw			$s1, 20($sp)
         lw			$ra, 28($sp)
         addu		$sp, $sp, 32       
         jr			$ra 
