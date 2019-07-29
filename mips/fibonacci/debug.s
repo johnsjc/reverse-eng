@@ -23,7 +23,7 @@ debug_memo2:			.asciiz ") already known: "
 ##
 debug.memo:
 
-		beqz		$s7, __m_end
+		beqz		$s7, __m_end                # skip if debug flag not set
 
 		move		$t0, $a0					# preserve n and memo[n]
 		move		$t1, $a1
