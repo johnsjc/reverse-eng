@@ -35,7 +35,7 @@ The first six bits of each instruction are the `op` field.
     * Pass control to the called function with a `jal` or `jalr` instruction.
     * Restore the caller-save registers after the call.
     * Pop any arguments that were pushed on the stack.
-    * Extract the return value from `$v0`.
+    * Extract the return value(s) from `$v0` and `$v1`.
 * The callee must do the following:
     * Create a stack frame 
         * Subtract the frame size from the stack pointer `$sp`.
