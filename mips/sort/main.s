@@ -15,16 +15,16 @@
 ##
 ## [DEBUG] Pass: 1
 ## 		[DEBUG] Sort: [2, 4, 1, 3, 5]
-## 		[DEBUG] Swap: [1] | [4]
+## 		[DEBUG] Swap: [4] | [1]
 ## 		[DEBUG] Result: [2, 1, 4, 3, 5]
 ##
 ## 		[DEBUG] Sort: [2, 1, 4, 3, 5]
-## 		[DEBUG] Swap: [3] | [4]
+## 		[DEBUG] Swap: [4] | [3]
 ## 		[DEBUG] Result: [2, 1, 3, 4, 5]
 ##
 ## [DEBUG] Pass: 2
 ## 		[DEBUG] Sort: [2, 1, 3, 4, 5]
-## 		[DEBUG] Swap: [1] | [2]
+## 		[DEBUG] Swap: [2] | [1]
 ## 		[DEBUG] Result: [1, 2, 3, 4, 5]
 ##
 ## [DEBUG] Pass: 3
