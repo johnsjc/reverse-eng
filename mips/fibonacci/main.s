@@ -25,7 +25,7 @@
 .data
 
 input_msg:			.asciiz "Input: "
-error_msg:			.asciiz "Integer is too large! Max value is 46."
+error_msg:			.asciiz "Input is too large! Enter a value less than 47."
 recursive_msg:		.asciiz "\nRecursive solution: "
 tail_recursive_msg:	.asciiz "\nTail recursive solution: "
 iterative_msg:		.asciiz "\nIterative solution: "
