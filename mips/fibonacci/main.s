@@ -44,7 +44,7 @@ main:
 		
 	m_read_n:
 	
-		li			$s7, 1									# debug = false
+		li			$s7, 1									# global debug flag = true
 			
 		li			$v0, 5
 		syscall	
