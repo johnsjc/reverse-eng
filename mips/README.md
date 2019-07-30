@@ -3,7 +3,7 @@
 Projects to learn MIPS.
 * fibonacci - implementations of algorithms to determine the nth fibonacci number (recursive with memoization, tail recursive, and iterative)
 * sort - implementations of bubble sort and recursive and iterative merge sort algorithms to sort a list of arbitrary size in ascending order.
-
+---
 [Reference Card](http://www.cburch.com/cs/330/reading/mips-ref.pdf)
 
 #### About MIPS
@@ -44,7 +44,7 @@ The first six bits of each instruction are the `op` field.
     * Restore the caller-save registers after the call.
     * Pop any arguments that were pushed on the stack.
     * Extract the return value(s) from `$v0` and `$v1`.
-* The callee must do the following:
+* The callee must do the following:-
     * Create a stack frame 
         * Subtract the frame size from the stack pointer `$sp`.
     * Save any **callee-save registers** (`$s0-$s7`, `$fp`, and `$ra`) that are used by the function.
