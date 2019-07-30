@@ -66,15 +66,13 @@ fib.recursion:
 
 		lw			$t0, 24($sp)		
 		sub			$a0, $t0, 2						# fib(n-2)
-		jal			fib.recursion
-		
+		jal			fib.recursion		
 		move		$t1, $v0
 		sw			$t1, 20($sp)					
 
 		lw			$t0, 24($sp)					# fib(n-1)
-		sub			$a0, $t0, 1
-		
-		jal			fib.recursion
+        sub			$a0, $t0, 1		
+		jal			fib.recursion        
 		move		$t2, $v0		
 		
 		lw			$t1, 20($sp)					# return fib(n - 2) + fib(n - 1)		
