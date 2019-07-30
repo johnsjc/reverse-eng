@@ -58,15 +58,15 @@ util.create_list:
 ## end of create_list
 
 
-## copy_list : void
+## clone_list : void
 ##
-## Copies the elements from one list to another.
+## Clones one list to another. Both lists must be the same size.
 ##
 ## Arguments:
 ##		a0:		address of source list
 ##		a1:		address of destination list
 ##
-util.copy_list:
+util.clone_list:
 
 		subu		$sp, $sp, 32
 		sw			$ra, 28($sp)
@@ -82,7 +82,7 @@ util.copy_list:
 		lw			$ra, 28($sp)
 		addu		$sp, $sp, 32
 		jr			$ra
-## end of copy_list
+## end of clone_list
 
 
 ## print_list
