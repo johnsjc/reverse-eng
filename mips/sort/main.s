@@ -240,7 +240,7 @@ sort:
 		
 		la			$a0, unsorted								# make a copy of the unsorted list to work with
 		la			$a1, list
-		jal			util.copy_list
+		jal			util.clone_list
 		
 		la			$a0, list
 		jalr		$s0											# execute the sort function				
