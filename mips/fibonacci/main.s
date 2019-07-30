@@ -92,7 +92,7 @@ main:
 		li			$v0, 1
 		syscall			
 		
-	m_iterative_recursive:
+	m_iterative:
 		
 		move		$a0, $s0
 		jal			fib.iteration
