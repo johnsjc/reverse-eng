@@ -154,7 +154,7 @@ sort.recursive_merge_sort:
 		li			$a1, 0									# 2nd arg: start index
 		lw			$a2, 0($s0)								# 3rd arg: end index
 		li			$a3, 0									# 4th arg: recursion depth (used for debugging)
-		jal			__do_recursive_merge_sort						# sort the list recursively		
+		jal			__do_recursive_merge_sort				# sort the list recursively		
 		
 		jal			debug.newline
 		
@@ -191,7 +191,7 @@ sort.iterative_merge_sort:
 		move		$a0, $s0								# 1st arg: list to sort
 		li			$a1, 0									# 2nd arg: start index
 		lw			$a2, 0($s0)								# 3rd arg: end index
-		jal			__do_iterative_merge_sort						# sort the list iteratively		
+		jal			__do_iterative_merge_sort				# sort the list iteratively		
 		
 		lw			$s0, 24($sp)	
 		lw			$ra, 28($sp)
@@ -269,7 +269,7 @@ __do_recursive_merge_sort:
 		lw			$s1, 16($sp) 							# s1: end
 		
 		sub			$s2, $s1, $s0							# s2: end - start
-		beq			$s2, 1, __do_recursive_merge_sort_end			# return if length of slice is 1
+		beq			$s2, 1, __do_recursive_merge_sort_end	# return if length of slice is 1
 		
 		add			$s2, $s1, $s0							# middle = (start + end) / 2
 		srl			$s2, $s2, 1
