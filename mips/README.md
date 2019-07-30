@@ -1,5 +1,7 @@
 ### MIPS
 
+[Reference Card](http://www.cburch.com/cs/330/reading/mips-ref.pdf)
+
 RISC architecture where each instruction is 32-bits (4 bytes).
 
 Bitfield:
@@ -46,5 +48,3 @@ The first six bits of each instruction are the `op` field.
     * Put the return value(s) in `$v0` and `$v1`.
     * Resume execution before the function call with `jr $ra`.
 
-
-[Reference Card](http://www.cburch.com/cs/330/reading/mips-ref.pdf)
