@@ -4,7 +4,7 @@
 ## Utility functions for the mergesort program
 ##
 
-.globl util.create_list
+.globl util.copy_list
 .globl util.print_list
 .globl util.print_list_range
 .globl util.print_char_n_times
